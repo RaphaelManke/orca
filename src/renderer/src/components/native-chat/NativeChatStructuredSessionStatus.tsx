@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { translate } from '@/i18n/i18n'
+import { useDelayedStatus } from '@/hooks/use-delayed-status'
 import { NativeChatBackgroundTasksStatus } from './NativeChatBackgroundTasksStatus'
 import type { StructuredSessionBackgroundTasksView } from './structured-session-background-tasks-view'
 
@@ -10,6 +11,9 @@ type StoppingBackgroundTasks = {
 }
 
 const NO_STOPPING_TASKS: ReadonlySet<string> = new Set()
+
+// Why: every launch passes through `starting`; only a slow start deserves the notice.
+export const SLOW_STARTUP_NOTICE_DELAY_MS = 5_000
 
 export function NativeChatStructuredSessionStatus(props: {
   sessionId: string
@@ -26,6 +30,11 @@ export function NativeChatStructuredSessionStatus(props: {
   const [stopping, setStopping] = useState<StoppingBackgroundTasks | null>(null)
   const [expanded, setExpanded] = useState<{ sessionId: string; expanded: boolean } | null>(null)
   const activeStopping = stopping?.sessionId === props.sessionId ? stopping : null
+  const shownStartupPhase = useDelayedStatus(
+    props.sessionId,
+    props.startupPhase === 'starting' ? 'starting' : null,
+    SLOW_STARTUP_NOTICE_DELAY_MS
+  )
 
   const onStop = (taskId?: string) => {
     const sessionId = props.sessionId
@@ -59,7 +68,7 @@ export function NativeChatStructuredSessionStatus(props: {
 
   return (
     <>
-      {props.startupPhase === 'starting' ? (
+      {shownStartupPhase === 'starting' ? (
         <p className="mx-auto w-full max-w-4xl px-4 py-1 text-xs text-muted-foreground">
           {translate(
             'auto.components.native.chat.NativeChatStructuredSessionStatus.starting',
