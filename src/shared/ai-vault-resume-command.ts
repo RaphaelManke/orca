@@ -218,6 +218,9 @@ function buildAgentResumeInvocation(
       return `${baseCommand} resume ${sessionArg}`
     case 'cline':
       return `${baseCommand} --id ${sessionArg}`
+    // Why: same spelling as the local startup plan (agent-session-resume.ts); `--v3` selects the engine.
+    case 'kiro':
+      return `${baseCommand} chat --tui --v3 --resume-id ${sessionArg}`
     case 'codebuddy':
     case 'claude':
     case 'zcode':

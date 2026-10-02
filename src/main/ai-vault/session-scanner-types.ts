@@ -45,6 +45,7 @@ export type AiVaultScanOptions = {
   droidProjectsDir?: string
   clineSessionsDir?: string
   kimiSessionsDir?: string
+  kiroSessionsDir?: string
   museSessionsDir?: string
   limit?: number
   unlimited?: boolean
@@ -118,6 +119,8 @@ export type ResumableSessionParseState = {
   clone(): ResumableSessionParseState
   // Refresh per-scan file metadata (mtime display string) without re-parsing.
   touchFile(file: FileWithMtime): void
+  /** After finalize: list-only session (e.g. an unsupported sidecar schema) that search must not index. */
+  excludedFromSearchIndex?(): boolean
   finalize(
     platform: NodeJS.Platform,
     options?: ResumableParseFinalizeOptions

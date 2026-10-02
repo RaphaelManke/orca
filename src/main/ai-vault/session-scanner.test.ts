@@ -459,6 +459,12 @@ describe('scanAiVaultSessions', () => {
     expect(commandByAgent.get('kimi')).toBe(
       "cd '/tmp/kimi' && kimi --session 'session_kimi-session'"
     )
+    expect(commandByAgent.get('kiro')).toBe(
+      "cd '/tmp/kiro' && kiro-cli chat --tui --v3 --resume-id 'sess_kiro-session'"
+    )
+    const kiroSession = result.sessions.find((session) => session.agent === 'kiro')
+    expect(kiroSession?.title).toBe('Kiro title')
+    expect(kiroSession?.model).toBe('kiro-model')
 
     const ompSession = result.sessions.find((session) => session.agent === 'omp')
     expect(ompSession?.model).toBe('gpt-5.4-mini')

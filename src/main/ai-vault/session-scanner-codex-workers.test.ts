@@ -218,6 +218,7 @@ describe('scanAiVaultSessions Codex worker sessions', () => {
       droidSessionsDir: join(root, 'droid-sessions'),
       droidProjectsDir: join(root, 'droid-projects'),
       kimiSessionsDir: join(root, 'kimi-sessions'),
+      kiroSessionsDir: join(root, 'kiro-sessions'),
       museSessionsDir: join(root, 'muse-sessions'),
       zcodeDbPath: join(root, 'zcode-db.sqlite'),
       platform: 'darwin'

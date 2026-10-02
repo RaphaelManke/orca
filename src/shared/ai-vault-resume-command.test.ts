@@ -4,6 +4,8 @@ import {
   buildAiVaultResumeCommand,
   buildAiVaultResumeShellCommand
 } from './ai-vault-resume-command'
+import { parseKiroResumeId } from './kiro-session-lock'
+import { buildAgentResumeStartupPlan } from './tui-agent-startup'
 
 describe('buildAiVaultResumeCommand', () => {
   it('uses Antigravity conversation ids instead of Gemini resume flags', () => {
@@ -37,6 +39,27 @@ describe('buildAiVaultResumeCommand', () => {
         platform: 'darwin'
       })
     ).toBe("cd '/repo/app' && codebuddy --resume 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'")
+  })
+
+  it('resumes Kiro sessions with the same V3 invocation as the local startup plan', () => {
+    const sessionId = 'sess_fb23f185-e144-4fdb-b729-bd5f8da28feb'
+    const command = buildAiVaultResumeCommand({
+      agent: 'kiro',
+      sessionId,
+      cwd: '/repo/app',
+      platform: 'darwin'
+    })
+    expect(command).toBe(`cd '/repo/app' && kiro-cli chat --tui --v3 --resume-id '${sessionId}'`)
+    const plan = buildAgentResumeStartupPlan({
+      agent: 'kiro',
+      providerSession: { key: 'session_id', id: sessionId },
+      cmdOverrides: {},
+      platform: 'darwin'
+    })
+    const local = plan?.launchCommand ?? ''
+    expect(local.startsWith('kiro-cli chat --tui --v3 ')).toBe(true)
+    expect(parseKiroResumeId(local)).toBe(sessionId)
+    expect(parseKiroResumeId(command)).toBe(sessionId)
   })
 
   it('builds a direct queued command for a live cmd shell', () => {

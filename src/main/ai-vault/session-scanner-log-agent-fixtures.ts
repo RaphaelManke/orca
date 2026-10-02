@@ -5,6 +5,7 @@ import {
   writePrimeAgentScannerFixture
 } from './session-scanner-test-fixtures'
 import { jsonlBody, type AgentVaultRoots } from './session-scanner-vault-roots'
+import { kiroFixtureMetadata, writeKiroFixtureSession } from './session-scanner-kiro-fixtures'
 
 // The agents whose session is an append-only JSONL log the CLI writes a record
 // at a time. Split from the document-shaped agents purely by file size; the two
@@ -69,6 +70,20 @@ export async function writeLogAgentFixtures(
       }
     ])
   )
+
+  // Kiro V3: <sessions>/<cwdHash>/sess_<id>/{session.json,messages.jsonl}; injected records stay out.
+  await writeKiroFixtureSession({
+    sessionsDir: roots.kiroSessionsDir,
+    bucket: '0123456789abcdef',
+    id: 'sess_kiro-session',
+    metadata: kiroFixtureMetadata({
+      id: 'sess_kiro-session',
+      title: 'Kiro title',
+      workspacePaths: ['/tmp/kiro'],
+      modelId: 'kiro-model',
+      _meta: { kiro: { executionTarget: { kind: 'local' } } }
+    })
+  })
 
   await mkdir(roots.copilotSessionsDir, { recursive: true })
   await writeFile(

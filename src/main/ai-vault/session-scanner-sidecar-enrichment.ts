@@ -1,8 +1,14 @@
 import type { AiVaultSession } from '../../shared/ai-vault-types'
+import { WslTranscriptFsError } from '../native-chat/wsl-transcript-fs-gate'
 import { buildAiVaultResumeCommand } from '../../shared/ai-vault-resume-command'
 import { generatedSessionTitle } from './session-scanner-accumulator'
 import { readCursorChatMeta, wasCursorChatMetaRefused } from './session-scanner-cursor-chat-meta'
 import { devinSessionsIndexForSidecar } from './session-scanner-devin-db'
+import {
+  applyKiroSessionMetadata,
+  readLocalKiroSessionMetadata,
+  recordKiroSessionMetadataIssue
+} from './session-scanner-kiro-metadata'
 import type { SessionSidecarObservation } from './session-sidecar-stat'
 import type { SessionFileCandidate } from './session-scanner-types'
 
@@ -25,7 +31,7 @@ export type SidecarEnrichment = {
 
 /** True when the sibling only adds metadata, so a change to it needs no re-parse. */
 export function sidecarEnrichesWithoutReparse(candidate: SessionFileCandidate): boolean {
-  return candidate.agent === 'cursor' || candidate.agent === 'devin'
+  return candidate.agent === 'cursor' || candidate.agent === 'devin' || candidate.agent === 'kiro'
 }
 
 export async function enrichSessionFromSidecar(
@@ -33,6 +39,9 @@ export async function enrichSessionFromSidecar(
   foldSession: AiVaultSession | null,
   platform: NodeJS.Platform
 ): Promise<SidecarEnrichment> {
+  if (candidate.agent === 'kiro') {
+    return enrichKiroSessionFromMetadata(candidate.file.path, foldSession, platform)
+  }
   if (candidate.agent === 'devin') {
     return enrichDevinSessionFromDb(candidate.file.sidecar, foldSession, platform)
   }
@@ -131,4 +140,35 @@ function enrichDevinSessionFromDb(
       foldSession.model === null && row.model !== null ? { ...merged, model: row.model } : merged,
     refused: false
   }
+}
+
+/**
+ * Kiro's session.json decides membership as well as metadata: a cloud target or an unknown
+ * schema hides the row. An invalid file is marked refused so every scan re-reads it (and
+ * re-reports it) without re-reading the transcript.
+ */
+async function enrichKiroSessionFromMetadata(
+  messagesPath: string,
+  foldSession: AiVaultSession | null,
+  platform: NodeJS.Platform
+): Promise<SidecarEnrichment> {
+  if (!foldSession) {
+    return { session: null, refused: false }
+  }
+  let read
+  try {
+    read = await readLocalKiroSessionMetadata(messagesPath)
+  } catch (error) {
+    if (!(error instanceof WslTranscriptFsError)) {
+      throw error
+    }
+    // The transcript fold stays cached; only the metadata is retried next scan.
+    recordKiroSessionMetadataIssue(messagesPath, error.message)
+    return { session: null, refused: true }
+  }
+  if (read.kind === 'invalid') {
+    recordKiroSessionMetadataIssue(messagesPath, read.message)
+    return { session: null, refused: true }
+  }
+  return { session: applyKiroSessionMetadata(foldSession, read, platform), refused: false }
 }
