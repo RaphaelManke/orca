@@ -16,6 +16,7 @@ import {
   codexHomePathsEqual
 } from '../host-env/codex-home'
 import { promoteAgentTeamsShimPath } from '../host-env/path'
+import { applyKiroResumeLockCheck } from '../host-env/kiro-resume'
 import { clearProviderPtyState } from '../provider/state-cleanup'
 import type { PtyIpcSpawnState } from './spawn-state'
 
@@ -44,6 +45,12 @@ export async function assemblePtyIpcSpawnCodexEnv(ctx: PtyIpcSpawnState): Promis
   ctx.codexResumeLaunch = codexResumePreparation
     ? await ctx.deps.resolveCodexResumeLaunch(args.command, codexResumePreparation)
     : ctx.deps.noCodexResumeLaunch(ctx.preAdoptedStablePane ? undefined : args.command)
+  ctx.codexResumeLaunch = applyKiroResumeLockCheck(ctx.codexResumeLaunch, {
+    connectionId: args.connectionId,
+    launchAgent: args.launchAgent,
+    cwd: ctx.cwd,
+    isWsl: ctx.codexSelectionTarget.runtime === 'wsl'
+  })
   // Why: these three phases have unrelated costs (session provenance + hook
   // repair, account/auth resolution, then the synchronous env build). One
   // `host_env` label hid all of them behind the name of the cheapest.

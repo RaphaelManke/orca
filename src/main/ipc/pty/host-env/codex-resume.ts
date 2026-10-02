@@ -1,7 +1,8 @@
 import type { TuiAgent } from '../../../../shared/tui-agent'
 import {
   normalizeAgentProviderSession,
-  type AgentProviderSessionMetadata
+  type AgentProviderSessionMetadata,
+  type ResumableTuiAgent
 } from '../../../../shared/agent-session-resume'
 import { SETUP_AGENT_SEQUENCE_STARTUP_COMMAND_ENV } from '../../../../shared/setup-agent-sequencing'
 import { dropAgentResumeArgvFromCommand } from '../../../../shared/agent-resume-argv-drop'
@@ -17,6 +18,8 @@ export type CodexResumeLaunch = {
   notifyResumeUnavailable: boolean
   droppedResumeArgv: boolean
   providerSession: AgentProviderSessionMetadata | null
+  /** Agent whose resume argv was dropped; absent means Codex. */
+  resumeAgent?: ResumableTuiAgent
 }
 
 export type PreparedCodexResumeHome = {
@@ -127,7 +130,7 @@ export function stripSequencedStartupResumeArgv<T extends Record<string, string>
   }
   const drop = dropAgentResumeArgvFromCommand({
     command: sequenced,
-    agent: 'codex',
+    agent: launch.resumeAgent ?? 'codex',
     providerSession: launch.providerSession
   })
   return drop.status === 'dropped'

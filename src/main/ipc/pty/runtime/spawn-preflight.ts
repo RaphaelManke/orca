@@ -15,6 +15,7 @@ import {
   codexHomePathsEqual
 } from '../host-env/codex-home'
 import { promoteAgentTeamsShimPath } from '../host-env/path'
+import { applyKiroResumeLockCheck } from '../host-env/kiro-resume'
 import {
   isClaudeLaunchCommand,
   recoverFreshSpawnProviderRouting,
@@ -138,9 +139,17 @@ export async function prepareRuntimePtySpawn(
         target: ctx.codexSelectionTarget,
         launchEnv: args.env
       })
-  const codexResumeLaunch = codexResumePreparation
-    ? await ctx.deps.resolveCodexResumeLaunch(args.command, codexResumePreparation)
-    : ctx.deps.noCodexResumeLaunch(ctx.preAdoptedStablePane ? undefined : args.command)
+  const codexResumeLaunch = applyKiroResumeLockCheck(
+    codexResumePreparation
+      ? await ctx.deps.resolveCodexResumeLaunch(args.command, codexResumePreparation)
+      : ctx.deps.noCodexResumeLaunch(ctx.preAdoptedStablePane ? undefined : args.command),
+    {
+      connectionId: args.connectionId,
+      launchAgent: args.launchAgent,
+      cwd: ctx.cwd,
+      isWsl: ctx.codexSelectionTarget.runtime === 'wsl'
+    }
+  )
   const codexResumeHome = codexResumeLaunch.codexResumeHome
   // Why: the drop still applies here, but this controller's result has no field for
   // notifyResumeUnavailable — runtime/relay panes start fresh without the notice.

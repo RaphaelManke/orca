@@ -23,7 +23,8 @@ export const RESUMABLE_TUI_AGENTS = [
   'kimi',
   'muse',
   'zcode',
-  'dsh'
+  'dsh',
+  'kiro'
 ] as const satisfies readonly TuiAgent[]
 
 export type ResumableTuiAgent = (typeof RESUMABLE_TUI_AGENTS)[number]
@@ -340,5 +341,9 @@ export function getAgentResumeArgv(
     // workspace. DSH keys sessions by workspace path, so callers must keep the cwd.
     case 'dsh':
       return providerSession.key === 'session_id' ? ['dsh-tui', '--resume', id] : null
+    // Why: only the tail is appended to the resolved base (`kiro-cli chat --tui --v3 …`), so
+    // repeating `chat --tui --v3` here would double the engine flag. Sessions are cwd-scoped.
+    case 'kiro':
+      return providerSession.key === 'session_id' ? ['kiro-cli', '--resume-id', id] : null
   }
 }
