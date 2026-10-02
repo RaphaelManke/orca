@@ -1,0 +1,9 @@
+{
+  "capturedAt": "2026-10-01T17:32:52.184Z",
+  "platform": "darwin",
+  "command": ["kiro-cli", "chat", "--tui", "--v3"],
+  "cols": 120,
+  "rows": 40,
+  "note": "kiro-cli 2.26.1, macOS; no --trust-all-tools; shell tool approval dialog owns the screen when the recorder stops",
+  "exitCode": 0
+}

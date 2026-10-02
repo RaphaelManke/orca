@@ -1,0 +1,9 @@
+{
+  "capturedAt": "2026-10-02T05:15:21.790Z",
+  "platform": "darwin",
+  "command": ["kiro-cli", "chat", "--tui", "--v3", "--trust-all-tools"],
+  "cols": 120,
+  "rows": 40,
+  "note": "kiro-cli 2.26.1, macOS, isolated HOME with copied login, fresh /tmp workspace; launched with --trust-all-tools; the Trust all tools mode dialog owns the screen when the recorder stops",
+  "exitCode": 0
+}

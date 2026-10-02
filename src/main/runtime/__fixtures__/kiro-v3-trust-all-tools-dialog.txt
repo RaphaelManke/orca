@@ -1,0 +1,36 @@
+[2m⠋ Launching...[0m[2m⠙ Launching...[0m[2m⠹ Launching...[0m[2m⠸ Launching...[0m[2m⠼ Launching...[0m[2m⠴ Launching...[0m[2m⠦ Launching...[0m[2m⠧ Launching...[0m[2m⠇ Launching...[0m[2m⠏ Launching...[0m[2m⠋ Launching...[0m[2m⠙ Launching...[0mPreparing V3...
+[2m⠹ Launching...[0m[2m⠸ Launching...[0m[2m⠼ Launching...[0m[2m⠴ Launching...[0m[2m⠦ Launching...[0m[2m⠧ Launching...[0m[2m⠇ Launching...[0m[2m⠏ Launching...[0m[2m⠋ Launching...[0m[2m⠙ Launching...[0m[2m⠹ Launching...[0m[2m⠸ Launching...[0m[2m⠼ Launching...[0m[2m⠴ Launching...[0m[2m⠦ Launching...[0m[2m⠧ Launching...[0m[2m⠇ Launching...[0m[2m⠏ Launching...[0m[2m⠋ Launching...[0m[2m⠙ Launching...[0m[2m⠹ Launching...[0m[2m⠸ Launching...[0m[2m⠼ Launching...[0m[2m⠴ Launching...[0m[2m⠦ Launching...[0m[2m⠧ Launching...[0m[2m⠇ Launching...[0m[2m⠏ Launching...[0m[2m⠋ Launching...[0m[2m⠙ Launching...[0m[2m⠹ Launching...[0m[2m⠸ Launching...[0m[2m⠼ Launching...[0m[2m⠴ Launching...[0m[2m⠦ Launching...[0m[2m⠧ Launching...[0m[2m⠇ Launching...[0m[2m⠏ Launching...[0m[2m⠋ Launching...[0m[2m⠙ Launching...[0m[2m⠹ Launching...[0m[2m⠸ Launching...[0m[2m⠼ Launching...[0m[2m⠴ Launching...[0m[2m⠦ Launching...[0m[2m⠧ Launching...[0m[2m⠇ Launching...[0m[2m⠏ Launching...[0m[2m⠋ Launching...[0m[2m⠙ Launching...[0m[2m⠹ Launching...[0m[2m⠸ Launching...[0m[2m⠼ Launching...[0m[2m⠴ Launching...[0m[2m⠦ Launching...[0m[2m⠧ Launching...[0m[2m⠇ Launching...[0m[K[2J[H[?1000h[?1003h[?1006h[?1006l[?1003l[?1000l]11;?[?2004h[?u[>4;1m[?25l[6n[?2026h[J                            [38;2;193;154;255m ⢀⣴⣶⣶⣦⡀⠀⠀⠀⠀⢀⣴⣶⣦⣄⡀[39m  [38;2;193;154;255m ⢀⣴⣶⣶⣦⡀[39m  [38;2;193;154;255m ⢀⣴⣶⣶⣶⣶⣶⣶⣶⣶⣶⣦⣄⡀[39m   [38;2;193;154;255m    ⢀⣠⣴⣶⣶⣶⣶⣶⣦⣄⡀[39m[0m
+                            [38;2;193;154;255m⢰⣿⠋⠁⠈⠙⣿⡆⠀⢀⣾⡿⠁  ⠈⢻⡆[39m [38;2;193;154;255m⢰⣿⠋⠁⠈⠙⣿⡆[39m [38;2;193;154;255m⢰⣿⠋⠁        ⠈⠙⠻⣦[39m  [38;2;193;154;255m   ⣴⡿⠟⠋⠁   ⠈⠙⠻⢿⣦[39m[0m
+                            [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣿⣇⣴⡿⠋⠀⠀  ⢀⣼⠇[39m [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣿⡇[39m [38;2;193;154;255m⢸⣿⠀⠀⠀⢠⣤⣤⣤⣤⣄    ⣿⡆[39m [38;2;193;154;255m  ⣼⡟⠀⠀⠀ ⣀⣀⣀    ⢻⣧[39m[0m
+                            [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣿⡿⠋⠀⠀  ⢀⣾⡿⠁[39m  [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣿⡇[39m [38;2;193;154;255m⢸⣿⠀⠀⠀⢸⣿⠉⠉⠉⣿⡇   ⣿⡇ [39m[38;2;193;154;255m ⣼⡟⠀⠀ ⣰⡿⠟⠛⠻⢿⣆⠀⠀ ⢻⣧[39m[0m
+                            [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⠙⠁⠀⠀ ⢀⣼⡟⠁[39m    [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣿⡇[39m [38;2;193;154;255m⢸⣿⠀⠀⠀⢸⣿⣶⣶⡶⠋⠀   ⣿⠇[39m [38;2;193;154;255m⢰⣿⠀⠀⠀⢰⣿⠀⠀⠀  ⣿⡆⠀⠀ ⣿⡆[39m[0m
+                            [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⠀⠀⠀⠀ ⠹⣷⡀[39m     [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣿⡇⠀[39m[38;2;193;154;255m⢸⣿⠀⠀⠀⠀⠀⠀⠀⠀   ⣠⣼⠟[39m  [38;2;193;154;255m⢸⣿⠀⠀ ⢸⣿⠀⠀⠀⠀ ⣿⡇⠀⠀ ⣿⡇[39m[0m
+                            [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⠀⣠⡀⠀⠀ ⠹⣷⡄[39m    [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣿⡇⠀[39m[38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣤⣄  ⠀⠀⠹⣿⡅[39m   [38;2;193;154;255m⠸⣿⠀⠀ ⠸⣿⠀⠀⠀⠀ ⣿⠇⠀  ⣿⠇[39m[0m
+                            [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣾⡟⣷⡀⠀⠀ ⠘⣿⣆[39m   [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣿⡇[39m [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣿⡟⣷⡀⠀⠀ ⠘⣿⣆[39m  [38;2;193;154;255m ⢻⣧⠀⠀ ⠹⣷⣦⣤⣤⣾⠏⠀⠀⠀⣼⡟[39m[0m
+                            [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣿⡇⠹⣷⡀  ⠀⠈⢻⡇[39m  [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣿⡇[39m [38;2;193;154;255m⢸⣿⠀⠀⠀⠀⣿⡇⠹⣷⡀  ⠀⠈⢻⡇[39m [38;2;193;154;255m  ⢻⣧⠀⠀⠀ ⠉⠉⠉    ⣼⡟[39m[0m
+                            [38;2;193;154;255m⠸⣿⣄⡀⢀⣠⣿⠇⠀⠙⣷⡀  ⢀⣼⠇[39m  [38;2;193;154;255m⠸⣿⣄⡀⢀⣠⣿⠇[39m [38;2;193;154;255m⠸⣿⣄⡀⢀⣠⣿⠇⠀⠙⣷⡀  ⢀⣼⠇[39m [38;2;193;154;255m   ⠻⣷⣦⣄⡀   ⢀⣠⣴⣾⠟[39m[0m
+                            [38;2;193;154;255m ⠈⠻⠿⠿⠟⠁⠀⠀⠀⠈⠻⠿⠿⠟⠁[39m   [38;2;193;154;255m ⠈⠻⠿⠿⠟⠁[39m  [38;2;193;154;255m ⠈⠻⠿⠿⠟⠁⠀⠀⠀⠈⠻⠿⠿⠟⠁[39m  [38;2;193;154;255m   ⠀⠀⠈⠙⠻⠿⠿⠿⠿⠟⠋⠁[39m[0m
+[0m
+                                                Welcome to [38;2;193;154;255mKiro CLI V3[39m![0m
+                             Upgrade your V2 agent configurations to V3 with [1m/upgrade-agent[22m[0m
+                                             [38;2;193;154;255mhttps://kiro.dev/docs/cli/v3/[39m[0m
+                               Prefer the previous experience? Launch with [38;2;193;154;255mkiro-cli --v2[39m[0m
+[0m
+ [38;2;38;38;38m──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[0m
+ [33mWarning: Kiro is running in trust all tools mode[39m[0m
+ [38;2;38;38;38m──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[0m
+ [0m
+ In this mode, Kiro will execute all tool calls — including shell commands, file operations, and MCP tools — without[0m
+ asking for your approval.[0m
+ [0m
+ This mode is intended for sandboxed or disposable environments only. Do not use it on a machine with access to[0m
+ sensitive data or production systems.[0m
+ [0m
+ By proceeding, you confirm that you understand the risks and accept responsibility for all actions taken during this[0m
+ session.[0m
+ [0m
+ [38;2;255;0;255m[1m❯[22m[39m [38;2;255;0;255m[1mNo, exit                [22m[39m[0m
+   Yes, I accept           [0m
+   Yes, and don't ask again[0m
+ [38;2;38;38;38m──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────[0m
+  esc [38;2;128;128;128mto cancel[39m[38;2;128;128;128m · [39m↑↓ [38;2;128;128;128mto navigate[39m[38;2;128;128;128m · [39m↵ [38;2;128;128;128mto select[39m[0m[?2026l[4A[4G[?25l[?2004h[?1004h

@@ -1,4 +1,9 @@
 import { isQoderComposerReady } from './qoder-terminal-readiness'
+import {
+  findKiroComposerIndex,
+  findKiroDialogBlockedSignals,
+  isKiroComposerReady
+} from './kiro-terminal-readiness'
 import { memoizeTitleClassification } from '../../shared/terminal-title-classification-memo'
 import {
   detectAgentStatusFromTitle,
@@ -89,6 +94,9 @@ export function isKnownReadyPromptBody(
 ): boolean {
   if (agent === 'qoder') {
     return isQoderComposerReady(readScreenLines())
+  }
+  if (agent === 'kiro') {
+    return isKiroComposerReady(readScreenLines(), waitText)
   }
   const screenVerdict = readScreenRuledVerdict(agent, readScreenLines)
   if (screenVerdict !== null) {
@@ -191,7 +199,8 @@ function findDismissedStartupModalIndex(normalized: string): number | null {
     findCodexHeaderIndex(normalized),
     findAntigravityReadyPromptIndex(normalized),
     findCursorActivePromptIndex(normalized),
-    findMuseReadyPromptIndex(normalized)
+    findMuseReadyPromptIndex(normalized),
+    findKiroComposerIndex(normalized)
   ].filter((index): index is number => index !== null)
   return indexes.length > 0 ? Math.max(...indexes) : null
 }
@@ -249,7 +258,7 @@ function findCodexReadyPromptIndex(normalized: string): number | null {
 }
 
 export const TERMINAL_WAIT_BLOCKED_SENTINEL_RE =
-  /update available|choose working directory to|codex just got an upgrade|available\s*·|esc\s*skip|enter\s*confirm\s*·|enter\/esc\s*(?:continue|confirm)|hooks need review|do you trust|trust this|trusted workspace|press enter to (?:confirm|continue|view|insert)|press t to trust|permission required|requires permission|allow once|allow always|run this command\?/i
+  /update available|choose working directory to|codex just got an upgrade|available\s*·|esc\s*skip|enter\s*confirm\s*·|enter\/esc\s*(?:continue|confirm)|hooks need review|do you trust|trust this|trusted workspace|press enter to (?:confirm|continue|view|insert)|press t to trust|permission required|requires permission|allow once|allow always|run this command\?|trust all tools mode|yes, i accept|get you signed in|requires approval/i
 
 // Why bounded: answered dialogs and quoted prompt wording (agents grep this file and its specs) stay in the
 // retained tail; only a dialog owning the screen bottom is live. Real Codex dialogs (trust, hooks review,
@@ -273,7 +282,10 @@ function findTerminalWaitBlockedSignal(
 function findBlockedSignalInLiveWindow(
   normalized: string
 ): { reason: RuntimeTerminalWaitBlockedReason; index: number } | null {
-  const candidates = findStartupDialogBlockedSignals(normalized)
+  const candidates = [
+    ...findStartupDialogBlockedSignals(normalized),
+    ...findKiroDialogBlockedSignals(normalized)
+  ]
   const trustIndex = Math.max(
     normalized.lastIndexOf('do you trust'),
     normalized.lastIndexOf('trust this'),

@@ -144,7 +144,12 @@ export function bindSettlePaneSerializer(session: ConnectPanePtySession): void {
       })
   }
   const deliverStartupDraftIfAgentOwnsPty = async (): Promise<void> => {
-    if (!session.startupDraftAgentConfig || startupDraftPasteSettled) {
+    // Why the composer gate: Kiro's process owns the PTY while its trust-all-tools confirm shows.
+    if (
+      !session.startupDraftAgentConfig ||
+      session.startupDraftAgentConfig.startupInputNeedsComposer ||
+      startupDraftPasteSettled
+    ) {
       return
     }
     const ptyId = getStartupDraftPtyId()

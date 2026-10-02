@@ -119,9 +119,11 @@ export async function pasteDraftWhenAgentReady(args: {
     // this sidecar subscription attaches. If process/title inspection says the
     // launched agent owns the PTY, fall back to a best-effort paste instead of
     // silently dropping generated prompts.
-    const fallbackReady = agentConfig
-      ? await waitForAgentReady(tabId, agentConfig.expectedProcess, { timeoutMs: 1000 })
-      : { ready: false }
+    // Why not for a composer-gated agent: its process is up while a startup dialog owns input.
+    const fallbackReady =
+      agentConfig && !agentConfig.startupInputNeedsComposer
+        ? await waitForAgentReady(tabId, agentConfig.expectedProcess, { timeoutMs: 1000 })
+        : { ready: false }
     if (!fallbackReady.ready) {
       onTimeout?.()
       return false
@@ -176,9 +178,10 @@ export async function pasteDraftToAgentPtyWhenReady(args: {
   const budget = resolveDraftPasteReadyTimeoutMs(agent, timeoutMs)
   const ready = await waitForAgentDraftInputReady(ptyId, budget, readySignal, settings)
   if (!ready) {
-    const fallbackReady = agentConfig
-      ? await waitForExpectedAgentOnPty(ptyId, agentConfig.expectedProcess, 1000, settings)
-      : false
+    const fallbackReady =
+      agentConfig && !agentConfig.startupInputNeedsComposer
+        ? await waitForExpectedAgentOnPty(ptyId, agentConfig.expectedProcess, 1000, settings)
+        : false
     if (!fallbackReady) {
       onTimeout?.()
       return false
