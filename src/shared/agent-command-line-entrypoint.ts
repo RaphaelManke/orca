@@ -10,6 +10,8 @@ const PROCESS_EXTENSION_RE = /\.(?:exe|cmd|bat|ps1)$/i
 
 const STATIC_INTERPRETER_PROCESS_NAMES = new Set([
   'node',
+  // Why: Kiro V3's TUI leaf is `bun …/kiro-cli/tui.js`; only path tokens are inspected.
+  'bun',
   'python',
   'python3',
   'bash',

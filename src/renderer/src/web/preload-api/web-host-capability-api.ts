@@ -67,6 +67,8 @@ export function createPreflightApi(): NonNullable<Partial<PreloadApi>['preflight
     // Why 'unknown' rather than a runtime call: the probe spawns the host's own `zcode`, and
     // a paired web client has no business deciding anything about the host's CLI install.
     zcodeInteractiveCapability: async () => 'unknown' as const,
+    // Why 'unknown': same reason — the host's kiro-cli is not this client's to judge.
+    kiroCliVersion: async () => ({ verdict: 'unknown' as const, version: null }),
     detectAgents: async () => {
       if (!requireActiveEnvironmentOrNull()) {
         return []

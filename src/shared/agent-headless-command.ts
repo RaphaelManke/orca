@@ -2,6 +2,7 @@ import { isCodebuddyNonInteractiveCommand } from './codebuddy-headless-command'
 import { isQoderHeadlessCommand } from './qoder-headless-command'
 import { isAnteHeadlessOneShotCommand } from './ante-headless-command'
 import { isDshNonInteractiveCommand } from './dsh-launch-command'
+import { isKiroNonInteractiveCommand } from './kiro-launch-command'
 import { isMuseHeadlessOneShotCommand } from './muse-headless-command'
 import { isZCodeHeadlessOneShotCommand } from './zcode-headless-command'
 import { isPrimeAgentHeadlessOneShotCommand } from './prime-agent-headless-command'
@@ -25,7 +26,8 @@ const HEADLESS_ONE_SHOT_MATCHERS: Partial<
   ante: isAnteHeadlessOneShotCommand,
   muse: isMuseHeadlessOneShotCommand,
   zcode: isZCodeHeadlessOneShotCommand,
-  dsh: isDshNonInteractiveCommand
+  dsh: isDshNonInteractiveCommand,
+  kiro: isKiroNonInteractiveCommand
 }
 
 export function isHeadlessOneShotAgentCommand(agent: TuiAgent, tokens: readonly string[]): boolean {

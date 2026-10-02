@@ -17,6 +17,10 @@ import type {
 // Re-exported here so existing importers of `ipc/preflight` keep working.
 export * from '../preflight/agent-detection'
 import { readZCodeInteractiveCapability } from '../zcode/interactive-capability'
+import {
+  invalidateKiroCliVersionStatus,
+  readKiroCliVersionStatus
+} from '../kiro/kiro-cli-version-probe'
 
 export function registerPreflightHandlers(): void {
   ipcMain.handle(
@@ -39,7 +43,11 @@ export function registerPreflightHandlers(): void {
     readZCodeInteractiveCapability()
   )
 
+  // Why local-only: a remote/WSL probe needs a relay RPC (a wire change); those fail open.
+  ipcMain.handle('preflight:kiroCliVersion', async () => readKiroCliVersionStatus())
+
   ipcMain.handle('preflight:refreshAgents', async (_event, args?: PreflightRuntimeContext) => {
+    invalidateKiroCliVersionStatus()
     return refreshShellPathAndDetectAgents(args)
   })
 

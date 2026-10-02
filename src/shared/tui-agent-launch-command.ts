@@ -2,6 +2,7 @@ import {
   removeOverriddenAgentSessionArgs,
   resolveAgentSessionOptionLaunch
 } from './agent-session-option-launch'
+import { normalizeKiroEngineFlag } from './kiro-launch-command'
 import type { SessionOptionValue } from './native-chat-session-options'
 import { getTuiAgentLaunchCommand, TUI_AGENT_CONFIG } from './tui-agent-config'
 import {
@@ -32,7 +33,7 @@ export function resolveAgentLaunchCommand(args: {
   isRemote?: boolean
 }): ResolvedAgentLaunchCommand {
   const override = args.cmdOverrides[args.agent]
-  const command =
+  const baseCommand =
     override ||
     getTuiAgentLaunchCommand(TUI_AGENT_CONFIG[args.agent], args.platform, {
       isRemote: args.isRemote
@@ -53,6 +54,18 @@ export function resolveAgentLaunchCommand(args: {
     args.sessionOptionsOverrideAgentArgs ? [] : trailingTokens.tokens,
     !args.sessionOptionsOverrideAgentArgs
   )
+  const command =
+    args.agent === 'kiro'
+      ? resolveKiroBaseCommand(baseCommand, !override, args.shell, [
+          ...trailingTokens.tokens,
+          ...resolvedOptions.args
+        ])
+      : baseCommand
+  // Why separate: this variant drops session options, so an engine option must not strip `--v3`.
+  const commandWithoutOptionsBase =
+    args.agent === 'kiro'
+      ? resolveKiroBaseCommand(baseCommand, !override, args.shell, trailingTokens.tokens)
+      : baseCommand
   if (override && args.sessionOptionsOverrideAgentArgs) {
     const overrideTokens = tokenizeStartupCommand(override, args.shell)
     if (!overrideTokens.ok) {
@@ -77,7 +90,9 @@ export function resolveAgentLaunchCommand(args: {
     }
   }
   const optionSuffix = resolvedOptions.args.map((arg) => quoteStartupArg(arg, args.shell)).join(' ')
-  const commandWithoutSessionOptions = suffix.suffix ? `${command} ${suffix.suffix}` : command
+  const commandWithoutSessionOptions = suffix.suffix
+    ? `${commandWithoutOptionsBase} ${suffix.suffix}`
+    : commandWithoutOptionsBase
   const commandWithOptions = optionSuffix ? `${command} ${optionSuffix}` : command
   const overrideTokens = args.sessionOptionsOverrideAgentArgs
     ? insertBeforeTerminator(
@@ -98,6 +113,26 @@ export function resolveAgentLaunchCommand(args: {
     commandWithoutSessionOptions,
     appliedSessionOptions: resolvedOptions.appliedValues
   }
+}
+
+// Why after option resolution: an engine session option lands in resolvedOptions.args,
+// and Kiro exits 2 if that flag is combined with the default `--v3`.
+function resolveKiroBaseCommand(
+  command: string,
+  isDefaultCommand: boolean,
+  shell: AgentStartupShell,
+  trailingTokens: readonly string[]
+): string {
+  const commandTokens = tokenizeStartupCommand(command, shell)
+  if (!commandTokens.ok) {
+    return command
+  }
+  return normalizeKiroEngineFlag({
+    command,
+    commandTokens: commandTokens.tokens,
+    trailingTokens,
+    isDefaultCommand
+  })
 }
 
 function insertBeforeTerminator(tokens: readonly string[], inserted: readonly string[]): string[] {

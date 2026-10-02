@@ -1,6 +1,7 @@
 import { ipcRenderer } from 'electron'
 import type { PreflightRuntimeContext, PreloadApi, RefreshAgentsResult } from '../api-types'
 import type { ZCodeInteractiveCapability } from '../../shared/zcode-missing-tui'
+import type { KiroCliVersionStatus } from '../../shared/kiro-cli-version'
 
 export const preflightApi = {
   check: (args?: {
@@ -30,6 +31,8 @@ export const preflightApi = {
     ipcRenderer.invoke('preflight:detectAgents', args),
   zcodeInteractiveCapability: (): Promise<ZCodeInteractiveCapability> =>
     ipcRenderer.invoke('preflight:zcodeInteractiveCapability'),
+  kiroCliVersion: (): Promise<KiroCliVersionStatus> =>
+    ipcRenderer.invoke('preflight:kiroCliVersion'),
   refreshAgents: (args?: PreflightRuntimeContext): Promise<RefreshAgentsResult> =>
     ipcRenderer.invoke('preflight:refreshAgents', args),
   detectRemoteAgents: (args: { connectionId: string }): Promise<string[]> =>
