@@ -4,6 +4,7 @@ import { createTerminalTitleTracker } from '../shared/terminal-output-side-effec
 import { getDecorativeTitleGateKey } from '../shared/agent-decorative-title-signature'
 import { FreebuffStatusProjection } from './freebuff-status-projection'
 import { applyRelayAgentWorkspaceTrust } from './agent-workspace-trust-spawn'
+import { dropRelayKiroLockedResume } from './kiro-resume-lock-spawn'
 import type { IPty } from 'node-pty'
 import { killWithDescendantSweep } from '../main/pty-descendant-termination'
 import type * as NodePty from 'node-pty'
@@ -1964,11 +1965,19 @@ export class PtyHandler {
     // Why: kept so a restarted runtime can re-adopt this PTY under its original handle (survives revive).
     const terminalHandle =
       typeof env?.ORCA_TERMINAL_HANDLE === 'string' ? env.ORCA_TERMINAL_HANDLE : undefined
-    const command = typeof params.command === 'string' ? params.command : undefined
     const launchAgent = isTuiAgent(params.launchAgent) ? params.launchAgent : undefined
     const terminalWindowsWslDistro =
       typeof params.terminalWindowsWslDistro === 'string' ? params.terminalWindowsWslDistro : null
     const commandDelivery = params.commandDelivery === 'provider' ? 'provider' : 'renderer'
+    const command = dropRelayKiroLockedResume(
+      typeof params.command === 'string' ? params.command : undefined,
+      {
+        launchAgent,
+        cwd,
+        providerDelivered: commandDelivery === 'provider',
+        wslShell: isRelayWslShell(shell)
+      }
+    )
     const shouldProviderDeliverCommand = commandDelivery === 'provider' && command !== undefined
     const spawnEnv = await this.buildSpawnEnv(
       env,
