@@ -207,7 +207,10 @@ export function extractAgentProviderSession(
     case 'droid':
     // Why: Kimi Code posts a Claude-shaped `session_id` (e.g. session_<uuid>).
     // falls through
-    case 'kimi': {
+    case 'kimi':
+    // Why: Kiro V3 hooks carry `session_id` (sess_<uuid>) on every event; SessionStart is skipped on resume.
+    // falls through
+    case 'kiro': {
       const id = readSessionId(payload, ['session_id'])
       return id ? { key: 'session_id', id } : null
     }

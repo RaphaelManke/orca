@@ -79,6 +79,9 @@ export function isNewTurnEvent(source: AgentHookSource, eventName: unknown): boo
     case 'devin':
       // Why: SessionStart is handled by an early return in normalizeDevinEvent, so UserPromptSubmit is Devin's real new-turn boundary here.
       return eventName === 'UserPromptSubmit'
+    case 'kiro':
+      // Why: Kiro V3 skips SessionStart on --resume-id and /chat new, so only UserPromptSubmit marks every turn.
+      return eventName === 'UserPromptSubmit'
   }
 }
 
@@ -155,6 +158,9 @@ export function extractToolFields(
     // Why: ZCode's hook runner writes Claude's `tool_name`/`tool_input`/`tool_response` aliases.
     // falls through
     case 'zcode':
+    // Why: Kiro V3 hooks carry Claude's `tool_name`/`tool_input`/`tool_response` verbatim.
+    // falls through
+    case 'kiro':
       return extractClaudeToolFields(eventName, hookPayload)
     case 'codex':
       return extractCodexToolFields(eventName, hookPayload)
