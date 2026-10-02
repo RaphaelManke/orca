@@ -24,6 +24,7 @@ import { normalizeCopilotEvent } from './providers/copilot-events'
 import { normalizeHermesEvent } from './providers/hermes-events'
 import { normalizeDevinEvent } from './providers/devin-events'
 import { normalizeKimiEvent } from './providers/kimi-events'
+import { normalizeKiroEvent } from './providers/kiro-events'
 import { normalizeMuseEvent } from './providers/muse-events'
 import { normalizeDshEvent } from './providers/dsh-events'
 import { normalizeZCodeEvent } from './providers/zcode-events'
@@ -166,6 +167,9 @@ export function normalizeProviderEvent(input: {
       break
     case 'kimi':
       payload = normalizeKimiEvent(state, eventName, promptText, paneKey, hookPayload)
+      break
+    case 'kiro':
+      payload = normalizeKiroEvent(state, eventName, promptText, paneKey, hookPayload)
       break
     case 'muse':
       payload = normalizeMuseEvent(state, eventName, promptText, paneKey, hookPayload)
