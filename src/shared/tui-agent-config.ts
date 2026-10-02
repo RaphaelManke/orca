@@ -182,7 +182,8 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
     // Why: the Kiro installer (https://cli.kiro.dev/install) ships `kiro-cli`, not `kiro`; keep id 'kiro' for stored prefs.
     detectCmd: 'kiro-cli',
     // Why: trust flags like --trust-all-tools attach to Kiro's `chat` subcommand, not top-level kiro-cli.
-    launchCmd: 'kiro-cli chat --tui',
+    // `--v3` opts into the engine Orca's hooks target; V2 is still Kiro's default.
+    launchCmd: 'kiro-cli chat --tui --v3',
     promptInjectionMode: 'stdin-after-start'
   },
   crush: {

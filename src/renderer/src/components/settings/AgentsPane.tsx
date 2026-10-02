@@ -1,4 +1,6 @@
 import { useMemo } from 'react'
+import { useKiroCliTooOld } from './use-kiro-cli-too-old'
+import { getKiroCliTooOldReason } from '@/components/terminal-pane/kiro-cli-too-old-notice'
 import { Info } from 'lucide-react'
 import type { GlobalSettings } from '../../../../shared/global-settings-types'
 import type { TuiAgent } from '../../../../shared/tui-agent'
@@ -177,6 +179,10 @@ export function AgentsPane({
     () => (detectedList ? new Set(detectedList) : null),
     [detectedList]
   )
+  const kiroCliTooOld = useKiroCliTooOld(
+    activeServerEnvironmentId === null && Boolean(detectedIds?.has('kiro')),
+    detectedList
+  )
   const catalog = getAgentCatalog()
   const defaultAgent = settings.defaultTuiAgent
   const cmdOverrides = settings.agentCmdOverrides ?? {}
@@ -237,7 +243,9 @@ export function AgentsPane({
     sessionSourceHome:
       isDetected && agent.id === 'codex'
         ? buildCodexSessionSourceHomeControl(settings, updateSettings)
-        : undefined
+        : undefined,
+    unsupportedReason:
+      isDetected && agent.id === 'kiro' && kiroCliTooOld ? getKiroCliTooOldReason() : undefined
   })
 
   return (

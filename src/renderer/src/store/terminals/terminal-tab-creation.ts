@@ -1,4 +1,5 @@
 import { warnIfZCodeCannotOpenSession } from '@/components/terminal-pane/zcode-missing-tui-notice'
+import { warnIfKiroCliTooOld } from '@/components/terminal-pane/kiro-cli-too-old-notice'
 import { clearWorktreeSleepIntent } from '@/lib/worktree-sleep-intent'
 import type { TerminalTab } from '../../../../shared/terminal-tab-types'
 import { isValidHostTerminalTabId } from '../../../../shared/terminal-tab-id'
@@ -138,6 +139,10 @@ export function createTerminalTabCreationActions(
           // Why here: this is where a ZCode launch is first known, and it runs before the
           // pane connects, so the explanation can beat the stack trace to the screen.
           void warnIfZCodeCannotOpenSession()
+        }
+        if (options?.launchAgent === 'kiro' && !isRemoteWorktree && !isWslWorktree) {
+          // Why local-only: the probe runs this machine's kiro-cli, not the SSH/WSL host's.
+          void warnIfKiroCliTooOld()
         }
         const validTargetGroupId =
           targetGroupId &&

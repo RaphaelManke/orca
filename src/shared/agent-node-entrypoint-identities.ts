@@ -34,5 +34,12 @@ export const EXACT_NODE_ENTRYPOINT_IDENTITIES: readonly {
     pattern: /(?:^|\/)node_modules\/@deepseek-ai\/dsh\/lib\/bin\.js$/,
     agent: 'dsh',
     processName: 'dsh'
+  },
+  // Why: Kiro's TUI sets process.title="kiro", so a bare `kiro` name is not identity
+  // (#24178); the bundled `kiro-cli/tui.js` path run by its private bun is.
+  {
+    pattern: /(?:^|\/)kiro-cli\/tui\.js$/,
+    agent: 'kiro',
+    processName: 'kiro-cli'
   }
 ]

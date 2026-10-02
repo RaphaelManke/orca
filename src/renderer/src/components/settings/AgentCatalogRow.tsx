@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, ChevronDown, ExternalLink } from 'lucide-react'
+import { AlertTriangle, Check, ChevronDown, ExternalLink } from 'lucide-react'
 import type { TuiAgent } from '../../../../shared/tui-agent'
 import { AgentIcon } from '@/lib/agent-catalog'
 import { cn } from '@/lib/utils'
@@ -74,6 +74,8 @@ export type AgentCatalogRowProps = {
   onSaveArgs: (value: string) => void
   onSaveEnv: (value: Record<string, string>) => void
   sessionSourceHome?: AgentSessionSourceHomeControl
+  /** Shown inline when the detected CLI cannot run Orca's integration (e.g. too old). */
+  unsupportedReason?: string
 }
 
 export function AgentCatalogRow({
@@ -94,7 +96,8 @@ export function AgentCatalogRow({
   onSaveOverride,
   onSaveArgs,
   onSaveEnv,
-  sessionSourceHome
+  sessionSourceHome,
+  unsupportedReason
 }: AgentCatalogRowProps): React.JSX.Element {
   const envSummary = stringifyAgentDefaultEnvDraft(envOverride)
   const defaultEnvSummary = stringifyAgentDefaultEnvDraft(defaultEnv)
@@ -129,6 +132,12 @@ export function AgentCatalogRow({
             {argsOverride && <span className="ml-1.5 text-foreground/70">{argsOverride}</span>}
             {envSummary && <span className="ml-1.5 text-foreground/60">{envSummary}</span>}
           </div>
+          {unsupportedReason && (
+            <div className="mt-1 flex items-center gap-1.5 text-xs text-destructive">
+              <AlertTriangle className="size-3 shrink-0" />
+              <span>{unsupportedReason}</span>
+            </div>
+          )}
         </div>
 
         <div className="ml-auto grid shrink-0 grid-cols-[max-content_6.5rem_1.75rem_1.75rem] items-center gap-1.5">

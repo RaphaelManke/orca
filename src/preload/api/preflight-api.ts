@@ -1,4 +1,5 @@
 import type { ZCodeInteractiveCapability } from '../../shared/zcode-missing-tui'
+import type { KiroCliVersionStatus } from '../../shared/kiro-cli-version'
 import type { ProjectExecutionRuntimeResolution } from '../../shared/project-execution-runtime'
 import type {
   PathSource,
@@ -49,6 +50,8 @@ export type PreflightApi = {
   detectAgents: (args?: PreflightRuntimeContext) => Promise<string[]>
   /** Whether the installed `zcode` can open a session; cached in main per run. */
   zcodeInteractiveCapability: () => Promise<ZCodeInteractiveCapability>
+  /** Local `kiro-cli` version verdict against Orca's floor; cached in main per run. */
+  kiroCliVersion: () => Promise<KiroCliVersionStatus>
   refreshAgents: (args?: PreflightRuntimeContext) => Promise<RefreshAgentsResult>
   detectRemoteAgents: (args: { connectionId: string }) => Promise<string[]>
   detectRemoteWindowsTerminalCapabilities: (args: { connectionId: string }) => Promise<{

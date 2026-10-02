@@ -658,7 +658,7 @@ describe('tui agent startup plans', () => {
       platform: 'linux'
     })
 
-    expect(plan?.launchCommand).toBe("kiro-cli chat --tui '--trust-all-tools'")
+    expect(plan?.launchCommand).toBe("kiro-cli chat --tui --v3 '--trust-all-tools'")
   })
 
   it('launches Continue through the documented cn binary', () => {

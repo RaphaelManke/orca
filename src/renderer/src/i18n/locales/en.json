@@ -3415,6 +3415,16 @@
           },
           "TerminalRestoringPlaceholder": {
             "restoring": "Restoring terminal…"
+          },
+          "kiro": {
+            "cli": {
+              "too": {
+                "old": {
+                  "reason": "Kiro CLI too old (needs ≥ 2.13)",
+                  "description": "The kiro-cli on your PATH is {{value0}}. Orca launches Kiro with --v3 and needs 2.13 or newer for status hooks. Run kiro-cli update, then try again."
+                }
+              }
+            }
           }
         }
       },

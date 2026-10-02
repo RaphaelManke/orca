@@ -15,6 +15,7 @@ import { isFreshOmpLaunchCommand } from './omp-fresh-launch'
 
 export type RecognizedAgentProcess = { agent: TuiAgent; processName: string }
 
+const KIRO_CHAT_PROCESS_NAME = 'kiro-cli-chat'
 const PROCESS_EXTENSION_RE = /\.(?:exe|cmd|bat|ps1)$/i
 const INTERPRETER_SCRIPT_EXTENSION_RE = /\.(?:js|mjs|cjs)$/i
 const PYTHON_SCRIPT_EXTENSION_RE = /\.(?:py|pyw)$/i
@@ -85,6 +86,11 @@ function agentForNormalizedProcess(normalized: string): TuiAgent | undefined {
   // comm-truncated rows (`muse-bin-1.0.3-R`) without matching unrelated `muse-*` tools.
   if (normalized.startsWith('muse-bin-')) {
     return PROCESS_TO_AGENT.get('muse')
+  }
+  // Why: `kiro-cli` execs `kiro-cli-chat` as its child; kept out of detectCmd aliases so a
+  // lone `kiro-cli-chat` on PATH does not count as an installed Kiro.
+  if (normalized === KIRO_CHAT_PROCESS_NAME) {
+    return PROCESS_TO_AGENT.get('kiro-cli')
   }
   return undefined
 }
@@ -163,7 +169,8 @@ export function isExpectedAgentProcess(
     normalizedProcess === normalizedExpected ||
     normalizedProcess.startsWith(`${normalizedExpected}.`) ||
     (normalizedExpected === 'qodercli' && /^qodercli-\d/.test(normalizedProcess)) ||
-    (normalizedExpected === 'muse' && normalizedProcess.startsWith('muse-bin-'))
+    (normalizedExpected === 'muse' && normalizedProcess.startsWith('muse-bin-')) ||
+    (normalizedExpected === 'kiro-cli' && normalizedProcess === KIRO_CHAT_PROCESS_NAME)
   )
 }
 
