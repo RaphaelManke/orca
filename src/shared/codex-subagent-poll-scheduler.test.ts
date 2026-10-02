@@ -49,6 +49,24 @@ describe('CodexSubagentPollScheduler', () => {
     expect(vi.getTimerCount()).toBe(0)
   })
 
+  it('honours a per-entry delay override alongside the default', () => {
+    vi.useFakeTimers()
+    const seen: string[] = []
+    const scheduler = new CodexSubagentPollScheduler(1_000, (key) => {
+      seen.push(key)
+    })
+
+    scheduler.schedule('slow', undefined)
+    scheduler.schedule('fast', undefined, 250)
+    scheduler.schedule('default', undefined, undefined)
+
+    expect(vi.getTimerCount()).toBe(1)
+    vi.advanceTimersByTime(250)
+    expect(seen).toEqual(['fast'])
+    vi.advanceTimersByTime(750)
+    expect(seen).toEqual(['fast', 'slow', 'default'])
+  })
+
   it('keeps a pending poll on schedule when the wall clock rolls back', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-08-30T12:00:00.000Z'))

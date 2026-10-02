@@ -13,6 +13,7 @@ import type { AgentStatusLegacyIngressCaller } from '../agent-status-legacy-ingr
 import type { ClaudeSubagentRoster } from '../claude-subagent-roster'
 import type { CodexSubagentRoster } from '../codex-subagent-roster'
 import type { CodexSubagentTranscriptState } from '../codex-subagent-transcript'
+import type { KiroPaneState } from '../kiro-session-log'
 import type { MuseSessionLogState } from '../muse-session-log'
 import type { AgentHookEventPayload, ToolSnapshot } from './listener-event'
 import {
@@ -70,6 +71,8 @@ export type HookListenerState = {
   lastLaunchTokenByPaneKey: Map<string, string>
   /** Kiro session ids that already sent SessionEnd per pane (bounded); a kill with a pending approval posts PostToolUse after it. */
   kiroEndedSessionIdsByPaneKey: Map<string, string[]>
+  /** Kiro V3 transcript cursor and in-tool flag per pane (drives the waiting/cancel poll). */
+  kiroPaneStateByPaneKey: Map<string, KiroPaneState>
 }
 
 export type MusePaneState = {
@@ -122,7 +125,8 @@ export function createHookListenerState(
     musePaneStateByPaneKey: new Map(),
     opencodeSessionPaneBySessionId: new Map(),
     lastLaunchTokenByPaneKey: new Map(),
-    kiroEndedSessionIdsByPaneKey: new Map()
+    kiroEndedSessionIdsByPaneKey: new Map(),
+    kiroPaneStateByPaneKey: new Map()
   }
   legacyStatusAdapterByState.set(state, adapter)
   return state
@@ -214,6 +218,7 @@ export function clearPaneCacheState(state: HookListenerState, paneKey: string): 
   unbindOpenCodeSessionsOfPane(state, paneKey)
   deletePaneScopedCacheEntry(state.lastLaunchTokenByPaneKey, paneKey)
   state.kiroEndedSessionIdsByPaneKey.delete(paneKey)
+  state.kiroPaneStateByPaneKey.delete(paneKey)
 }
 
 /** Does this pane still hold anything that can ASSERT a state — a stored row, or a Claude latch that
@@ -293,6 +298,7 @@ export function movePaneCacheState(
   moveOpenCodeSessionBindings(state, fromPaneKey, toPaneKey)
   movePaneScopedMapEntries(state.lastLaunchTokenByPaneKey, fromPaneKey, toPaneKey)
   movePaneScopedMapEntries(state.kiroEndedSessionIdsByPaneKey, fromPaneKey, toPaneKey)
+  movePaneScopedMapEntries(state.kiroPaneStateByPaneKey, fromPaneKey, toPaneKey)
 }
 
 export function clearPaneTurnCacheState(state: HookListenerState, paneKey: string): void {
@@ -347,4 +353,5 @@ export function clearAllListenerCaches(state: HookListenerState): void {
   state.opencodeSessionPaneBySessionId.clear()
   state.lastLaunchTokenByPaneKey.clear()
   state.kiroEndedSessionIdsByPaneKey.clear()
+  state.kiroPaneStateByPaneKey.clear()
 }
