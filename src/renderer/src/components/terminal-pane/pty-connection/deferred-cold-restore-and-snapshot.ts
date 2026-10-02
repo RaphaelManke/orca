@@ -10,6 +10,11 @@ import { CLIENT_PLATFORM } from '@/lib/new-workspace'
 import { shouldKeepHiddenStartupRendererQueriesLive } from './hidden-startup-renderer-query'
 import { createForegroundImmediateBudget } from './foreground-output-budgets'
 import type { FreshSpawnOptions, ColdRestoreAgentResumeStartup } from './fresh-spawn-types'
+import type {
+  AgentProviderSessionMetadata,
+  ResumableTuiAgent
+} from '../../../../../shared/agent-session-resume'
+import { resumeSpawnRecordsProviderSession } from '../../../../../shared/agent-session-resume'
 
 import type { ConnectPanePtySession } from './connect-pane-pty-session'
 import { bindCaptureTransportOutputCallbacks } from './transport-output-callbacks'
@@ -36,7 +41,8 @@ export function bindDeferredColdRestoreAndSnapshot(session: ConnectPanePtySessio
     return true
   }
   session.clearSleepingRecordAfterColdRestoreSpawn = (
-    startup: ColdRestoreAgentResumeStartup | null
+    startup: ColdRestoreAgentResumeStartup | null,
+    options: { resumeUnavailable?: boolean } = {}
   ): void => {
     if (startup && !startup.useLiveEntry && startup.sleepingRecordEntry) {
       session.clearSleepingRecordProviderDuplicates(
@@ -44,6 +50,38 @@ export function bindDeferredColdRestoreAndSnapshot(session: ConnectPanePtySessio
         startup.sleepingRecordEntry
       )
     }
+    if (startup && !options.resumeUnavailable) {
+      session.reseedResumedProviderSession(
+        startup.agent,
+        startup.resumeProviderSession,
+        startup.launchToken
+      )
+    }
+  }
+  // Why: the resume consumed the record, and agents with no hook on resume (Kiro) would otherwise
+  // lose the session on the next sleep or quit before a turn re-reports it.
+  session.reseedResumedProviderSession = (
+    agent: ResumableTuiAgent,
+    providerSession: AgentProviderSessionMetadata,
+    launchToken: string | undefined
+  ): void => {
+    const state = useAppStore.getState()
+    // A live hook row already owns the identity; recording would delete it.
+    if (!resumeSpawnRecordsProviderSession(agent) || state.agentStatusByPaneKey[session.cacheKey]) {
+      return
+    }
+    state.recordAgentProviderSession(
+      session.cacheKey,
+      agent,
+      providerSession,
+      undefined,
+      {
+        tabId: session.deps.tabId,
+        worktreeId: session.deps.worktreeId,
+        ...(session.connectionId ? { connectionId: session.connectionId } : {})
+      },
+      launchToken ? { launchToken } : undefined
+    )
   }
   session.mergeStartupEnvWithPaneIdentity = (
     env: Record<string, string> | undefined

@@ -291,7 +291,8 @@ async function deliverAgentStartupToTerminal(
       ptyId,
       expectedProcess: startup.expectedProcess,
       prompt: startup.followupPrompt,
-      settings: runtimeSettings
+      settings: runtimeSettings,
+      agent: startup.agent
     })
     // Why: a dropped follow-up is otherwise silent — surface the same toast the
     // draft path uses so the user knows to open the workspace and paste it.

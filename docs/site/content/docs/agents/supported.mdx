@@ -40,7 +40,7 @@ To restore prompts for one agent only, edit that agent's default arguments or en
 | Goose              | Auto-setup                                                                                                                 | [Block](https://block.github.io/goose/docs/quickstart/)                                           |
 | Amp                | Auto-setup                                                                                                                 | [Amp](https://ampcode.com/manual#install)                                                         |
 | Kilocode           | Auto-setup                                                                                                                 | [Kilo](https://kilo.ai/docs/cli)                                                                  |
-| Kiro               | Auto-setup                                                                                                                 | [Kiro](https://kiro.dev/docs/cli/)                                                                |
+| Kiro               | Auto-setup, hooks, status, session history, resume; V3 engine only, `kiro-cli` 2.13+ (see note below)                      | [Kiro](https://kiro.dev/docs/cli/)                                                                |
 | Charm Crush        | Auto-setup                                                                                                                 | [Charm](https://github.com/charmbracelet/crush)                                                   |
 | Auggie             | Auto-setup                                                                                                                 | [Augment](https://docs.augmentcode.com/cli/overview)                                              |
 | Autohand           | Auto-setup                                                                                                                 | [Autohand](https://github.com/autohandai/code-cli)                                                |
@@ -84,3 +84,17 @@ packages the runtime together with the TUI.
 
 Check what you have with `zcode --version`, and confirm `zcode` opens a session outside Orca before
 reporting a harness problem.
+
+## Kiro: V3 engine only
+
+Orca launches Kiro as `kiro-cli chat --tui --v3`. Status hooks, the waiting-for-approval state,
+resume and session history all read Kiro's V3 engine, so Orca does not support the older V2 engine.
+If your launch arguments already pick an engine (`--v2`, `--v3` or `--agent-engine`), Orca does not
+add `--v3`, because Kiro refuses two engine flags.
+
+You need `kiro-cli` 2.13 or newer, the first release with global hooks. Check with
+`kiro-cli --version` and update with `kiro-cli update`. With an older binary, Orca shows
+"Kiro CLI too old" in **Settings → Agents** and still launches Kiro, but without status.
+
+Orca installs its status hook in its own file, `~/.kiro/hooks/orca-status.json`, and never edits
+your other hook or agent files. The hook does nothing when Kiro runs outside Orca.

@@ -5,6 +5,10 @@ import { createDraftPasteReadyScanner } from '../../shared/draft-paste-ready-sca
 import { getTuiAgentRestSignal } from '../../shared/tui-agent-rest-signal'
 import { createTranscriptPane } from './agent-transcript-pane-test-harness'
 import { isKiroComposerReady } from './kiro-terminal-readiness'
+import {
+  sendWorktreeStartupFollowupWhenReady,
+  type WorktreeStartupReadinessHost
+} from './runtime-worktree-startup-readiness'
 import { detectAgentStatusFromTitle } from '../../shared/agent-detection'
 import {
   detectExplicitIdleStatusFromTitle,
@@ -154,5 +158,110 @@ describe('Kiro opt-in chat.terminalTitle', () => {
       expect(detectAgentStatusFromTitle(title)).toBeNull()
       expect(detectExplicitIdleStatusFromTitle(title)).toBeNull()
     }
+  })
+})
+
+describe('Kiro typed startup prompt', () => {
+  afterEach(() => vi.useRealTimers())
+
+  function host(replay: string) {
+    let listener = (_data: string): void => {}
+    let onExit = (): void => {}
+    let foreground = 'kiro-cli'
+    const write = vi.fn()
+    const readinessHost: WorktreeStartupReadinessHost = {
+      getPtyId: () => 'pty-1',
+      getForegroundProcess: async () => foreground,
+      subscribeToData: (_ptyId, onData) => {
+        listener = onData
+        return () => {}
+      },
+      readRecentOutput: () => replay,
+      subscribeToExit: (_ptyId, listener) => {
+        onExit = listener
+        return () => {}
+      },
+      write
+    }
+    return {
+      readinessHost,
+      write,
+      emit: (data: string) => listener(data),
+      exitPty: () => onExit(),
+      returnToShell: () => {
+        foreground = 'zsh'
+      }
+    }
+  }
+
+  function sendFixIt(h: ReturnType<typeof host>): void {
+    sendWorktreeStartupFollowupWhenReady(h.readinessHost, 'term-1', {
+      expectedProcess: 'kiro-cli',
+      prompt: 'fix it',
+      agent: 'kiro'
+    })
+  }
+
+  it('waits out the trust-all-tools confirm and types only into the composer', async () => {
+    vi.useFakeTimers()
+    const accepted = fixture('kiro-v3-trust-all-tools-accepted')
+    const splitAt = accepted.indexOf('ask a question or describe a task')
+    const h = host(accepted.slice(0, splitAt))
+    sendFixIt(h)
+    await vi.advanceTimersByTimeAsync(5_000)
+    // Why: the replay holds the whole dialog; a write here would pick "No, exit".
+    expect(h.write).not.toHaveBeenCalled()
+    h.emit(accepted.slice(splitAt))
+    await vi.advanceTimersByTimeAsync(0)
+    expect(h.write).toHaveBeenCalledWith('pty-1', 'fix it\r', 'launch')
+  })
+
+  it('holds the prompt past the paste budget until the dialog is accepted', async () => {
+    vi.useFakeTimers()
+    const accepted = fixture('kiro-v3-trust-all-tools-accepted')
+    const splitAt = accepted.indexOf('ask a question or describe a task')
+    const h = host(accepted.slice(0, splitAt))
+    sendFixIt(h)
+    await vi.advanceTimersByTimeAsync(5 * 60_000)
+    expect(h.write).not.toHaveBeenCalled()
+    h.emit(accepted.slice(splitAt))
+    await vi.advanceTimersByTimeAsync(0)
+    expect(h.write).toHaveBeenCalledWith('pty-1', 'fix it\r', 'launch')
+  })
+
+  it('drops the prompt with a warning when the hold expires', async () => {
+    vi.useFakeTimers()
+    const h = host(fixture('kiro-v3-trust-all-tools-dialog'))
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    sendFixIt(h)
+    await vi.advanceTimersByTimeAsync(10 * 60_000 + 5_000)
+    expect(h.write).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('startup prompt hold expired'))
+    expect(warn).toHaveBeenCalledWith(
+      '[worktree-create] agent did not become ready for follow-up prompt'
+    )
+    warn.mockRestore()
+  })
+
+  it.each([
+    ['the PTY exits', (h: ReturnType<typeof host>) => h.exitPty()],
+    ['the agent returns the pane to its shell', (h: ReturnType<typeof host>) => h.returnToShell()]
+  ])('stops holding when %s', async (_case, end) => {
+    vi.useFakeTimers()
+    const accepted = fixture('kiro-v3-trust-all-tools-accepted')
+    const splitAt = accepted.indexOf('ask a question or describe a task')
+    const h = host(accepted.slice(0, splitAt))
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    sendFixIt(h)
+    await vi.advanceTimersByTimeAsync(5_000)
+    end(h)
+    await vi.advanceTimersByTimeAsync(5_000)
+    h.emit(accepted.slice(splitAt))
+    await vi.advanceTimersByTimeAsync(0)
+    expect(h.write).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith(
+      '[worktree-create] agent did not become ready for follow-up prompt'
+    )
+    warn.mockRestore()
   })
 })

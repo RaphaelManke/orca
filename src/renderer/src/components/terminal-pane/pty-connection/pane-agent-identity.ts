@@ -63,7 +63,10 @@ export function installPaneAgentIdentity(session: ConnectPanePtySession): void {
     return (
       Boolean(state.paneForegroundAgentByPaneKey[session.cacheKey]?.agent) ||
       session.paneHasLiveHookAgentIcon(state) ||
-      isTuiAgent(registeredLaunchAgent)
+      isTuiAgent(registeredLaunchAgent) ||
+      // Why: a done turn keeps only this resume anchor; trusting the 133;D would skip the
+      // confirmed-shell clear, and a /quit session would then be auto-resumed on restart.
+      session.getSleepingRecordForPane(state)?.record.origin === 'live'
     )
   }
   // Why: a plain `codex`/`grok` sets its OSC title and the shell never repaints

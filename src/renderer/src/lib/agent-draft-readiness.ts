@@ -22,7 +22,8 @@ export function waitForAgentDraftInputReady(
   ptyId: string,
   timeoutMs: number,
   readySignal: DraftPasteReadySignal,
-  settings: Pick<GlobalSettings, 'activeRuntimeEnvironmentId'> | null | undefined
+  settings: Pick<GlobalSettings, 'activeRuntimeEnvironmentId'> | null | undefined,
+  abort?: AbortSignal
 ): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     let settled = false
@@ -43,8 +44,15 @@ export function waitForAgentDraftInputReady(
         window.clearTimeout(quietTimer)
       }
       unsubscribe?.()
+      abort?.removeEventListener('abort', onAbort)
       resolve(value)
     }
+    const onAbort = (): void => finish(false)
+    if (abort?.aborted) {
+      finish(false)
+      return
+    }
+    abort?.addEventListener('abort', onAbort)
 
     const armQuietTimer = (): void => {
       if (quietTimer !== null) {
