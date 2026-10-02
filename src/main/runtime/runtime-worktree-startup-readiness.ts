@@ -1,7 +1,10 @@
 import { isShellProcess } from '../../shared/agent-detection'
 import { isExpectedAgentProcess } from '../../shared/agent-process-recognition'
 import { createDraftPasteReadyScanner } from '../../shared/draft-paste-ready-scanner'
-import { resolveDraftPasteReadyTimeoutMs } from '../../shared/draft-paste-ready-timeout'
+import {
+  resolveDraftPasteReadyTimeoutMs,
+  resolveStartupComposerWaitMs
+} from '../../shared/draft-paste-ready-timeout'
 import { TUI_AGENT_CONFIG } from '../../shared/tui-agent-config'
 import type { TuiAgent } from '../../shared/tui-agent'
 import type { TerminalInputKind } from '../../shared/terminal-input-kind'
@@ -13,6 +16,7 @@ import type {
 const BRACKETED_PASTE_BEGIN = '\x1b[200~'
 const BRACKETED_PASTE_END = '\x1b[201~'
 const BRACKETED_PASTE_QUIET_MS = 1500
+const STARTUP_HOLD_AGENT_EXIT_POLL_MS = 3000
 
 export type WorktreeStartupReadinessHost = {
   getPtyId: (handle: string) => string | null
@@ -20,6 +24,7 @@ export type WorktreeStartupReadinessHost = {
   hasChildProcesses?: (ptyId: string) => Promise<boolean>
   subscribeToData: (ptyId: string, listener: (data: string) => void) => () => void
   readRecentOutput: (ptyId: string) => string | undefined
+  subscribeToExit?: (ptyId: string, listener: () => void) => () => void
   write: (ptyId: string, data: string, inputKind: TerminalInputKind) => void
 }
 
@@ -45,6 +50,15 @@ export function sendWorktreeStartupFollowupWhenReady(
   followup: WorktreeStartupFollowup
 ): void {
   void waitForWorktreeStartupFollowup(host, handle, followup.expectedProcess)
+    .then((ptyId) =>
+      ptyId && followup.agent && TUI_AGENT_CONFIG[followup.agent].startupInputNeedsComposer
+        ? waitForWorktreeStartupDraft(host, handle, followup.agent, {
+            requireComposerMarker: true,
+            timeoutMs: resolveStartupComposerWaitMs(followup.agent),
+            holdUntilAgentExits: true
+          })
+        : ptyId
+    )
     .then((ptyId) => {
       if (!ptyId) {
         console.warn('[worktree-create] agent did not become ready for follow-up prompt')
@@ -91,7 +105,12 @@ export function waitForWorktreeStartupDraft(
   host: WorktreeStartupReadinessHost,
   handle: string,
   agent: TuiAgent,
-  options: { timeoutMs?: number; requireComposerMarker?: boolean } = {}
+  options: {
+    timeoutMs?: number
+    requireComposerMarker?: boolean
+    /** A long hold ends early once the PTY exits or the agent returns the pane to its shell. */
+    holdUntilAgentExits?: boolean
+  } = {}
 ): Promise<string | null> {
   const ptyId = host.getPtyId(handle)
   if (!ptyId) {
@@ -104,7 +123,9 @@ export function waitForWorktreeStartupDraft(
     const scanner = createDraftPasteReadyScanner(signal)
     let quietTimer: NodeJS.Timeout | null = null
     let hardTimer: NodeJS.Timeout | null = null
+    let exitPoll: NodeJS.Timeout | null = null
     let unsubscribe: (() => void) | null = null
+    let unsubscribeExit: (() => void) | null = null
     const finish = (value: string | null): void => {
       if (settled) {
         return
@@ -116,7 +137,11 @@ export function waitForWorktreeStartupDraft(
       if (hardTimer) {
         clearTimeout(hardTimer)
       }
+      if (exitPoll) {
+        clearInterval(exitPoll)
+      }
       unsubscribe?.()
+      unsubscribeExit?.()
       resolve(value)
     }
     const observe = (data: string): void => {
@@ -135,10 +160,29 @@ export function waitForWorktreeStartupDraft(
       }
     }
     unsubscribe = host.subscribeToData(ptyId, observe)
-    hardTimer = setTimeout(
-      () => finish(null),
-      options.timeoutMs ?? resolveDraftPasteReadyTimeoutMs(agent)
-    )
+    const timeoutMs = options.timeoutMs ?? resolveDraftPasteReadyTimeoutMs(agent)
+    hardTimer = setTimeout(() => {
+      if (options.holdUntilAgentExits) {
+        console.warn(
+          `[worktree-create] startup prompt hold expired after ${timeoutMs} ms without a ready composer`
+        )
+      }
+      finish(null)
+    }, timeoutMs)
+    if (options.holdUntilAgentExits) {
+      unsubscribeExit = host.subscribeToExit?.(ptyId, () => finish(null)) ?? null
+      // Why: "No, exit" on Kiro's dialog leaves a live shell; a later agent there must not get this prompt.
+      exitPoll = setInterval(() => {
+        void host
+          .getForegroundProcess(ptyId)
+          .then((foreground) => {
+            if (foreground && isShellProcess(foreground)) {
+              finish(null)
+            }
+          })
+          .catch(() => {})
+      }, STARTUP_HOLD_AGENT_EXIT_POLL_MS)
+    }
     const replay = host.readRecentOutput(ptyId)
     if (replay) {
       observe(replay)

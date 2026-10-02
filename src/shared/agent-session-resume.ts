@@ -153,6 +153,14 @@ export function isResumableTuiAgent(value: unknown): value is ResumableTuiAgent 
   return typeof value === 'string' && RESUMABLE_TUI_AGENT_SET.has(value)
 }
 
+// Why opt-in: these post no hook on resume (Kiro skips SessionStart), so the resume spawn must
+// re-record the session itself. Agents that do report could fork the id under a stale record.
+const SILENT_RESUME_TUI_AGENTS: ReadonlySet<ResumableTuiAgent> = new Set(['kiro'])
+
+export function resumeSpawnRecordsProviderSession(agent: ResumableTuiAgent): boolean {
+  return SILENT_RESUME_TUI_AGENTS.has(agent)
+}
+
 export function normalizeAgentProviderSession(raw: unknown): AgentProviderSessionMetadata | null {
   if (typeof raw !== 'object' || raw === null) {
     return null

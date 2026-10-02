@@ -17,6 +17,16 @@ import type {
 
 import type { ConnectPanePtySession } from './connect-pane-pty-session'
 import { findTerminalTabForPane } from './terminal-tab-id'
+import { isResumableTuiAgent } from '../../../../../shared/agent-session-resume'
+
+function isAgentResumeUnavailable(spawned: unknown): boolean {
+  return (
+    typeof spawned === 'object' &&
+    spawned !== null &&
+    'agentResumeUnavailable' in spawned &&
+    spawned.agentResumeUnavailable === true
+  )
+}
 
 export function bindStartFreshSpawn(session: ConnectPanePtySession): void {
   session.startFreshSpawn = (
@@ -206,7 +216,22 @@ export function bindStartFreshSpawn(session: ConnectPanePtySession): void {
           } else if (coldRestoreOverride?.hasSleepingRecord) {
             session.showSessionRestoredBanner()
           }
-          session.clearSleepingRecordAfterColdRestoreSpawn(coldRestoreOverride)
+          session.clearSleepingRecordAfterColdRestoreSpawn(coldRestoreOverride, {
+            resumeUnavailable: isAgentResumeUnavailable(spawnedPtyId)
+          })
+          const wakeStartup = coldRestoreOverride ? null : session.paneStartup
+          if (
+            wakeStartup?.resumeProviderSession &&
+            isResumableTuiAgent(wakeStartup.launchAgent) &&
+            !isAgentResumeUnavailable(spawnedPtyId)
+          ) {
+            // Why: a wake tab carries the consumed record's session in its startup, not a record.
+            session.reseedResumedProviderSession(
+              wakeStartup.launchAgent,
+              wakeStartup.resumeProviderSession,
+              session.launchToken
+            )
+          }
         } else if (
           session.paneStartup?.launchConfig ||
           (startupOverride && 'launchConfig' in startupOverride)

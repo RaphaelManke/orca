@@ -36,6 +36,7 @@ export class OrcaRuntimeWithGetWorktreeTerminalProvisioningHost extends OrcaRunt
         this.ptyController!.hasChildProcesses?.(ptyId) ?? Promise.resolve(false),
       subscribeToData: (ptyId, listener) => this.subscribeToTerminalData(ptyId, listener),
       readRecentOutput: (ptyId) => this.recentPtyOutputById.get(ptyId)?.read(),
+      subscribeToExit: (ptyId, listener) => this.subscribeToPtyExit(ptyId, listener),
       write: (ptyId, data, inputKind) => this.ptyController?.write(ptyId, data, inputKind)
     }
   }
