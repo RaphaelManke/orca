@@ -5,7 +5,9 @@ import {
 } from '../../../shared/agent-hook-listener/grok-result-discovery'
 import type { AgentHookSource } from '../../../shared/agent-hook-relay'
 import {
+  isTranscriptPollSource,
   shouldPollHookTranscript,
+  transcriptPollDelayMs,
   transcriptPollUpdate
 } from '../../../shared/agent-hook-listener/transcript-poll-policy'
 import { CodexSubagentPollScheduler } from '../../../shared/codex-subagent-poll-scheduler'
@@ -52,14 +54,18 @@ export abstract class AgentHookServerStatusRetries extends AgentHookServerStatus
     original: EnrichedAgentHookEventPayload
   ): void {
     // Why: a nested CLI of another kind inherits ORCA_PANE_KEY, so clearing here would silently end a live poll.
-    if (source !== 'codex' && source !== 'muse') {
+    if (!isTranscriptPollSource(source)) {
       return
     }
     this.transcriptPollScheduler.clear(original.paneKey)
     if (!shouldPollHookTranscript(this.state, source, original)) {
       return
     }
-    this.transcriptPollScheduler.schedule(original.paneKey, { source, body, original })
+    this.transcriptPollScheduler.schedule(
+      original.paneKey,
+      { source, body, original },
+      transcriptPollDelayMs(this.state, source, original.paneKey)
+    )
   }
 
   private runTranscriptPoll(paneKey: string, poll: TranscriptPoll): void {

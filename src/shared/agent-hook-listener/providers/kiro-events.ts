@@ -3,6 +3,12 @@ import {
   normalizeAgentStatusPayload,
   type ParsedAgentStatusPayload
 } from '../../agent-status-types'
+import {
+  createKiroSessionLogState,
+  readKiroSessionLog,
+  type KiroPaneState,
+  type KiroPendingInteraction
+} from '../../kiro-session-log'
 import type { HookListenerState } from '../listener-state'
 import {
   resolvePrompt,
@@ -10,6 +16,7 @@ import {
   shouldIgnoreCompactContinuationUserPromptSubmit
 } from '../prompt-fields'
 import { extractToolFields, isNewTurnEvent } from '../provider-event-routing'
+import { summarizeApprovalInput } from '../interactive-tool'
 import { readString } from '../tool-input-preview'
 
 // Why bounded: /chat new mints a fresh id per use, and every id gets its own SessionEnd at quit.
@@ -34,6 +41,35 @@ function readKiroState(eventName: unknown, hookPayload: Record<string, unknown>)
   }
 }
 
+function getKiroPaneState(state: HookListenerState, paneKey: string): KiroPaneState {
+  let pane = state.kiroPaneStateByPaneKey.get(paneKey)
+  if (!pane) {
+    pane = { inTool: false }
+    state.kiroPaneStateByPaneKey.set(paneKey, pane)
+  }
+  return pane
+}
+
+/** True while a Kiro pane has a transcript the poll can read (session id and cwd seen). */
+export function hasKiroSessionLog(state: HookListenerState, paneKey: string): boolean {
+  return state.kiroPaneStateByPaneKey.get(paneKey)?.log !== undefined
+}
+
+export function isKiroPaneInTool(state: HookListenerState, paneKey: string): boolean {
+  return state.kiroPaneStateByPaneKey.get(paneKey)?.inTool === true
+}
+
+// Why: the `{ approval }` envelope plus Kiro's own option labels; parsers that predate `options` ignore it.
+function kiroApprovalPrompt(pending: KiroPendingInteraction, toolName: string | undefined): string {
+  return JSON.stringify({
+    approval: {
+      tool: toolName ?? 'tool',
+      summary: summarizeApprovalInput({ command: pending.question }),
+      options: pending.options.map((option) => ({ id: option.optionId, label: option.name }))
+    }
+  })
+}
+
 function hasSessionEnded(state: HookListenerState, paneKey: string, sessionId: string): boolean {
   return state.kiroEndedSessionIdsByPaneKey.get(paneKey)?.includes(sessionId) ?? false
 }
@@ -52,6 +88,7 @@ function recordSessionEnded(state: HookListenerState, paneKey: string, sessionId
 // Kiro CLI V3 fires Claude-compatible PascalCase hooks with Claude-shaped tool fields. It has no
 // permission or subagent event (subagent tool hooks carry the lead's session_id), so rows move
 // working ⇄ done from hooks; an AskUserQuestion PreToolUse is the only hook-level waiting signal.
+// Approval waits and Ctrl+C cancels come from the session transcript, re-read by the poll.
 export function normalizeKiroEvent(
   state: HookListenerState,
   eventName: unknown,
@@ -62,7 +99,7 @@ export function normalizeKiroEvent(
   if (shouldIgnoreCompactContinuationUserPromptSubmit(eventName, promptText)) {
     return null
   }
-  const stateName = readKiroState(eventName, hookPayload)
+  let stateName = readKiroState(eventName, hookPayload)
   if (!stateName) {
     return null
   }
@@ -74,6 +111,29 @@ export function normalizeKiroEvent(
   }
   if (eventName === 'SessionEnd' && sessionId) {
     recordSessionEnded(state, paneKey, sessionId)
+  }
+
+  const pane = getKiroPaneState(state, paneKey)
+  const cwd = readString(hookPayload, 'cwd')
+  if (sessionId && cwd && pane.log?.sessionId !== sessionId) {
+    // Why: /chat new switches the id with no hook of its own (R4.8); the next prompt's hooks carry it.
+    pane.log = createKiroSessionLogState(sessionId, cwd)
+  }
+  pane.inTool = eventName === 'PreToolUse'
+
+  let pending: KiroPendingInteraction | undefined
+  let interrupted: true | undefined
+  if (stateName !== 'done' && pane.log) {
+    // Why: V3 fires no hook for its approval dialog or a Ctrl+C cancel; only the transcript shows them.
+    const read = readKiroSessionLog(pane.log)
+    if (read.turnEnd?.stopReason === 'cancelled') {
+      stateName = 'done'
+      interrupted = true
+      pane.inTool = false
+    } else if (read.pending && stateName === 'working') {
+      stateName = 'waiting'
+      pending = read.pending
+    }
   }
 
   const resetOnNewTurn = isNewTurnEvent('kiro', eventName)
@@ -90,9 +150,13 @@ export function normalizeKiroEvent(
     agentType: 'kiro',
     toolName: snapshot.toolName,
     toolInput: snapshot.toolInput,
-    interactivePrompt: snapshot.interactivePrompt,
+    interactivePrompt:
+      pending?.interactionType === 'tool_approval'
+        ? kiroApprovalPrompt(pending, snapshot.toolName)
+        : snapshot.interactivePrompt,
     lastAssistantMessage: snapshot.lastAssistantMessage,
     lastAssistantMessageIsToolOutput: snapshot.lastAssistantMessageIsToolOutput,
+    interrupted,
     // Why: SessionStart fires on the first prompt submit, just before UserPromptSubmit; it is a
     // session landing, not a completed turn, so notifications and unread must ignore it.
     ...(eventName === 'SessionStart' ? { sessionBoundary: true } : {})
