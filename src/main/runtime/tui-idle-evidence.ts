@@ -216,6 +216,12 @@ export type TuiIdleVerdict =
   | { kind: 'working' }
   | { kind: 'pending'; quietForeground: QuietForegroundLane }
 
+const COMPOSER_GATED_AGENTS: ReadonlySet<TuiAgent> = new Set(['qoder', 'kiro'])
+
+function isComposerGatedAgent(agent: TuiAgent | null | undefined): boolean {
+  return agent != null && COMPOSER_GATED_AGENTS.has(agent)
+}
+
 const READY_STRONG: TuiIdleVerdict = { kind: 'ready-strong' }
 const READY_WEAK: TuiIdleVerdict = { kind: 'ready-weak' }
 const WORKING: TuiIdleVerdict = { kind: 'working' }
@@ -257,8 +263,9 @@ export function evaluateTuiIdle(input: TuiIdleEvaluationInput): TuiIdleVerdict {
   if (blockedReason) {
     return { kind: 'blocked', reason: blockedReason }
   }
-  // Qoder publishes "Ready" before its trust dialog is dismissed; only its composer proves input is live.
-  if (input.agent === 'qoder') {
+  // Only the composer proves input is live: Qoder publishes "Ready" before its trust dialog is
+  // dismissed, and Kiro has no rest title while its trust-all-tools confirm is as quiet as idle.
+  if (isComposerGatedAgent(input.agent)) {
     if (
       hasFreshWorkingFirstPartyStatus(input.firstPartyStatus) ||
       input.record.lastAgentStatus === 'working'
@@ -383,7 +390,7 @@ export function ptyTuiIdleEvidence(
     record: pty,
     readTailBlockedReason: () => detectTerminalWaitBlockedReason(waitText()),
     readPositiveBodyEvidence: () =>
-      (agent !== 'qoder' && source.getAdoptedPtyIdleStatus(pty) === 'idle') ||
+      (!isComposerGatedAgent(agent) && source.getAdoptedPtyIdleStatus(pty) === 'idle') ||
       isKnownReadyPromptBody(waitText(), agent, readScreen, pty.lastOutputAt !== null),
     readQuietReadyBodyEvidence: () => isQuietReadyScreenBody(waitText(), agent, readScreen),
     readScreenDecidesReadiness: () => readScreenRuledVerdict(agent, readScreen) !== null,

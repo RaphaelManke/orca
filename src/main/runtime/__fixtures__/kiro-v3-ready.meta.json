@@ -1,0 +1,9 @@
+{
+  "capturedAt": "2026-10-01T17:31:44.124Z",
+  "platform": "darwin",
+  "command": ["kiro-cli", "chat", "--tui", "--v3"],
+  "cols": 120,
+  "rows": 40,
+  "note": "kiro-cli 2.26.1, macOS, logged-in account (type scrubbed), already-used dir, idle composer after init; stopped by recorder",
+  "exitCode": 0
+}

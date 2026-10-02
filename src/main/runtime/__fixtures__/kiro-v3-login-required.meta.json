@@ -1,0 +1,9 @@
+{
+  "capturedAt": "2026-10-01T17:32:18.853Z",
+  "platform": "darwin",
+  "command": ["/opt/homebrew/bin/kiro-cli", "chat", "--tui", "--v3"],
+  "cols": 120,
+  "rows": 40,
+  "note": "kiro-cli 2.26.1, macOS; HOME pointed at an empty temp dir so no auth store exists (real account untouched). Screen is painted by kiro-cli before the V3 TUI starts",
+  "exitCode": 0
+}

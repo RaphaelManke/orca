@@ -1,0 +1,9 @@
+{
+  "capturedAt": "2026-10-01T17:32:08.748Z",
+  "platform": "darwin",
+  "command": ["kiro-cli", "chat", "--tui", "--v3"],
+  "cols": 120,
+  "rows": 40,
+  "note": "kiro-cli 2.26.1, macOS; project .kiro/settings/mcp.json with a server whose command does not exist (ENOENT, logged in ~/.kiro/logs/*/mcp.log). No banner is painted: evidence that MCP failure is silent in the TUI",
+  "exitCode": 0
+}

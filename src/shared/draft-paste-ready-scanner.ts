@@ -25,6 +25,10 @@ const GROK_COMPOSER_PROMPT = '❯'
 // means the composer specifically. Anchored on the alternate-screen switch for the same
 // reason as grok: a powerline shell prompt can also draw `╭`.
 const ZCODE_COMPOSER_BOX_CORNER = '╭'
+// Why: Kiro's empty-composer placeholder, one contiguous text run in kiro-cli 2.26.1. Unanchored:
+// Kiro uses no alternate screen and enables DECSET 2004 during `Launching...`, which ConPTY drops
+// anyway; the phrase itself is specific enough.
+export const KIRO_COMPOSER_PLACEHOLDER = 'ask a question or describe a task'
 const DECSET_ALT_SCREEN = '\x1b[?1049h'
 const DECRST_ALT_SCREEN = '\x1b[?1049l'
 
@@ -86,6 +90,13 @@ const DRAFT_PASTE_READY_SIGNALS: Record<DraftPasteReadySignal, DraftPasteReadySi
     // switches to the alternate screen, where the marker anchor would never arm.
     quietAnchor: DECSET_BRACKETED_PASTE
   },
+  // Why no quiet window: the trust-all-tools confirm is quiet too, and pasting into it is unsafe.
+  'kiro-composer-prompt': {
+    markerAnchor: null,
+    markerAnchorEnd: null,
+    marker: KIRO_COMPOSER_PLACEHOLDER,
+    quietAnchor: null
+  },
   'render-quiet-after-bracketed-paste': {
     markerAnchor: null,
     markerAnchorEnd: null,
@@ -146,6 +157,8 @@ export type DraftPasteReadyScanResult = {
  *     mounted — so the quiet window alone never settles and a launch draft would wait out
  *     the whole hard timeout, exactly as grok did. Same alt-screen anchoring and
  *     revocation as grok, because a powerline shell prompt can draw `╭` too.
+ *   - `kiro-composer-prompt`: ready when Kiro paints its empty-composer placeholder,
+ *     with no anchor and no quiet window (`kiro-v3-trust-all-tools-dialog.txt`).
  *   - `render-quiet-after-bracketed-paste` (default): no signal marker; arms the
  *     quiet window once DECSET 2004 is seen.
  *
@@ -246,6 +259,9 @@ export function createDraftPasteReadyScanner(readySignal: DraftPasteReadySignal)
       }
       if (readySignal === 'codex-composer-prompt' && !sawMarkerAnchor) {
         scanCodexPreAnchorPrompt(data)
+      }
+      if (signalMarker !== null && markerAnchor === null && combined.includes(signalMarker)) {
+        return { ready: true, armQuietTimer: false }
       }
       if (signalMarker !== null && markerAnchor !== null) {
         if (markerAnchorEnd !== null) {

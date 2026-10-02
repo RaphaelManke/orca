@@ -184,7 +184,12 @@ const TUI_AGENT_CONFIG_SOURCE: Record<TuiAgent, TuiAgentConfigSource> = {
     // Why: trust flags like --trust-all-tools attach to Kiro's `chat` subcommand, not top-level kiro-cli.
     // `--v3` opts into the engine Orca's hooks target; V2 is still Kiro's default.
     launchCmd: 'kiro-cli chat --tui --v3',
-    promptInjectionMode: 'stdin-after-start'
+    promptInjectionMode: 'stdin-after-start',
+    // Why: DECSET 2004 lands during `Launching...`, and `--trust-all-tools` opens a quiet confirm
+    // whose default is "No, exit"; only the empty composer's placeholder means input is live.
+    draftPasteReadySignal: 'kiro-composer-prompt',
+    draftPasteReadyTimeoutMs: 20_000,
+    startupInputNeedsComposer: true
   },
   crush: {
     detectCmd: 'crush',

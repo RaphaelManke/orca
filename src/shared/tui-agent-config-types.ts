@@ -13,6 +13,7 @@ export type DraftPasteReadySignal =
   | 'grok-composer-prompt'
   | 'dsh-composer-prompt'
   | 'zcode-composer-prompt'
+  | 'kiro-composer-prompt'
 
 export type TuiAgentDetectionRuntime = NodeJS.Platform | 'wsl'
 
@@ -43,6 +44,8 @@ export type TuiAgentConfig = {
   draftPasteReadySignal?: DraftPasteReadySignal
   /** Hard deadline for the agent's composer readiness signal. */
   draftPasteReadyTimeoutMs?: number
+  /** Startup text waits for `draftPasteReadySignal` and is never written blind: a startup dialog owns Enter (Kiro's trust-all-tools confirm defaults to "No, exit"). */
+  startupInputNeedsComposer?: true
   /** Delay before one extra blind submit Enter, for agents that render their composer before Enter is live (codex); a no-op if the first Enter landed. */
   submitRetryDelayMs?: number
   /** Extra ms per logical prompt line before Enter, for TUIs that expand multiline paste slowly (antigravity). */

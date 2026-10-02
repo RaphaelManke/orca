@@ -1,0 +1,16 @@
+{
+  "capturedAt": "2026-10-01T17:34:47.823Z",
+  "platform": "darwin",
+  "command": [
+    "kiro-cli",
+    "chat",
+    "--tui",
+    "--v3",
+    "--resume-id",
+    "sess_fb23f185-e144-4fdb-b729-bd5f8da28feb"
+  ],
+  "cols": 120,
+  "rows": 40,
+  "note": "kiro-cli 2.26.1, macOS; --resume-id of a session already open in another kiro-cli process. TUI prints 'Session is open in another terminal (PID n)' and stays on Initializing; it does not exit (recorder stopped it)",
+  "exitCode": 0
+}
