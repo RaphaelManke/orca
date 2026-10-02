@@ -9,6 +9,7 @@ import { createCodebuddySessionResumeState } from './session-scanner-codebuddy-p
 import { createGeminiJsonlSessionResumeState } from './session-scanner-gemini-parsers'
 import { createCopilotSessionResumeState } from './session-scanner-copilot-parser'
 import { createCursorSessionResumeState } from './session-scanner-cursor-parser'
+import { createLocalKiroSessionResumeState } from './session-scanner-kiro-parser'
 import { countSubagentTranscripts } from './session-scanner-subagent-transcripts'
 import { countOmpSubagentTranscripts } from './session-scanner-omp-subagent-transcripts'
 import type { ResumableSessionParseState, SessionFileCandidate } from './session-scanner-types'
@@ -63,6 +64,8 @@ function resumableStateFactoryFor(
       return (messages) => createCopilotSessionResumeState(candidate.file, messages)
     case 'droid':
       return (messages) => createDroidSessionResumeState(candidate.file, messages)
+    case 'kiro':
+      return (messages) => createLocalKiroSessionResumeState(candidate.file, messages)
     case 'openclaw':
     case 'pi':
     case 'omp':

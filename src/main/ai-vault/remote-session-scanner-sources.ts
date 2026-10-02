@@ -30,6 +30,7 @@ import type { FileWithMtime } from './session-scanner-types'
 import { remoteCodexIndexedTitleReader } from './remote-session-scanner-codex-index'
 import { remoteClineSource } from './remote-session-scanner-cline-source'
 import { remoteDevinSource } from './remote-session-scanner-devin-source'
+import { remoteKiroSource } from './remote-session-scanner-kiro-source'
 import type {
   RemoteParserOptions,
   RemoteScannerContext,
@@ -102,6 +103,7 @@ export function remoteSessionSources(
       (path) => remotePathSegments(path).includes('agent-transcripts')
     ),
     remoteClineSource(remoteHome, hostPlatform),
+    remoteKiroSource(remoteHome, hostPlatform),
     source(
       'hermes',
       remoteHome,

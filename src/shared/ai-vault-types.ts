@@ -23,6 +23,7 @@ export const AI_VAULT_AGENTS = [
   'droid',
   'cline',
   'kimi',
+  'kiro',
   'muse'
 ] as const satisfies readonly TuiAgent[]
 
@@ -72,6 +73,7 @@ export const AI_VAULT_AGENT_LABELS = {
   droid: 'Droid',
   cline: 'Cline',
   kimi: 'Kimi',
+  kiro: 'Kiro',
   muse: 'Muse'
 } as const satisfies Record<AiVaultAgent, string>
 

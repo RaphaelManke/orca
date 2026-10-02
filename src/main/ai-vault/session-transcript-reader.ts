@@ -128,7 +128,11 @@ export async function readResumableTranscript(args: {
     }
 
     const session = await displayState.finalize(args.platform)
-    channel.finishRead({ session, byteOffset: readResult.consumedThrough, incomplete: false })
+    channel.finishRead({
+      session: displayState.excludedFromSearchIndex?.() ? null : session,
+      byteOffset: readResult.consumedThrough,
+      incomplete: false
+    })
     return {
       session,
       resume: {

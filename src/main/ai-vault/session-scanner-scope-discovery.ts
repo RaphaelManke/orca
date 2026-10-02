@@ -135,12 +135,12 @@ function cwdBucketScopePrefixes(
   return prefixes
 }
 
-function scopePathCandidates(scopePath: string): string[] {
+export function scopePathCandidates(scopePath: string): string[] {
   const wslScopePath = parseWslUncPath(scopePath)
   return wslScopePath ? [scopePath, wslScopePath.linuxPath] : [scopePath]
 }
 
-function isCwdInsideScopePath(scopePath: string, cwd: string): boolean {
+export function isCwdInsideScopePath(scopePath: string, cwd: string): boolean {
   if (isPathInsideOrEqual(scopePath, cwd)) {
     return true
   }
@@ -294,7 +294,7 @@ async function collectBucketFiles(args: {
   }
 }
 
-function addBoundedFile(
+export function addBoundedFile(
   collected: Map<string, FileWithMtime>,
   limit: number,
   file: FileWithMtime

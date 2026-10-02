@@ -32,6 +32,7 @@ const ALLOWLIST = new Set([
   'session-scanner-test-fixtures.ts',
   'session-scanner-document-agent-fixtures.ts',
   'session-scanner-log-agent-fixtures.ts',
+  'session-scanner-kiro-fixtures.ts',
   'session-scanner-opencode-sqlite-fixture.ts'
 ])
 

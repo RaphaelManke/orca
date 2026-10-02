@@ -26,12 +26,7 @@ import { recordSessionScanIssue } from './session-scan-issues'
 import { getSessionParseCacheEntry } from './session-parse-cache-store'
 import { describeSkippedTranscriptRecords } from './session-transcript-record-budget'
 import { canStopParsingSessions } from './session-scan-cutoff'
-import { discoverInScopeCwdBucketFiles } from './session-scanner-scope-discovery'
-import {
-  CLAUDE_CWD_BUCKET_LAYOUT,
-  PI_CWD_BUCKET_LAYOUT,
-  CODEBUDDY_CWD_BUCKET_LAYOUT
-} from './session-cwd-bucket-layouts'
+import { discoverInScopeSessionCandidates } from './session-scanner-in-scope-candidates'
 import { discoverAiVaultSessionSources } from './session-scanner-source-discovery'
 import { cursorChatMetaRefusals, withCursorChatMetaScan } from './session-scanner-cursor-chat-meta'
 import type {
@@ -44,6 +39,10 @@ import { clampPositiveInteger, errorMessage } from './session-scanner-values'
 import { throwIfAiVaultScanCancelled } from './ai-vault-scan-cancellation'
 import { DEFAULT_AI_VAULT_SCAN_LIMIT } from '../../shared/ai-vault-session-depth'
 import { withDevinSessionsDbScan } from './session-scanner-devin-db'
+import {
+  kiroSessionMetadataIssues,
+  withKiroSessionMetadataScan
+} from './session-scanner-kiro-metadata'
 
 const SESSION_PARSE_CONCURRENCY = 8
 const SESSION_PARSE_CANDIDATE_MULTIPLIER = 2
@@ -57,8 +56,13 @@ const SESSION_PARSE_CANDIDATE_MULTIPLIER = 2
  * @param options - Optional scan configuration (limits, custom dirs, platform).
  * @returns The list of sessions, scan issues, and a timestamp.
  */
-export async function scanAiVaultSessions(
-  options: AiVaultScanOptions = {}
+export function scanAiVaultSessions(options: AiVaultScanOptions = {}): Promise<AiVaultListResult> {
+  // Kiro's session.json problems are collected across discovery, parse and cache reuse.
+  return withKiroSessionMetadataScan(() => scanAiVaultSessionsInScanScopes(options))
+}
+
+async function scanAiVaultSessionsInScanScopes(
+  options: AiVaultScanOptions
 ): Promise<AiVaultListResult> {
   // The span makes scan cost visible in the local trace file: STA-1278-style
   // "one core pegged" reports need to show whether transcript scanning is the
@@ -127,6 +131,9 @@ export async function scanAiVaultSessions(
             message: refusal.message
           })
         }
+        for (const issue of kiroSessionMetadataIssues()) {
+          recordSessionScanIssue(issues, { agent: 'kiro', ...issue })
+        }
 
         span.setAttribute('candidates', candidates.length)
         span.setAttribute('reused', parseStats.reused)
@@ -168,14 +175,6 @@ function mergeSessions(
   return [...byId.values()].sort((left, right) => sessionSortTime(right) - sessionSortTime(left))
 }
 
-// Agents whose on-disk layout names a directory per cwd, so a scope's older
-// sessions can be found without reading every transcript's header.
-const CWD_BUCKET_LAYOUTS = [
-  CLAUDE_CWD_BUCKET_LAYOUT,
-  PI_CWD_BUCKET_LAYOUT,
-  CODEBUDDY_CWD_BUCKET_LAYOUT
-]
-
 async function scanInScopeSessions(args: {
   discoveries: SessionFileDiscovery[]
   scopePaths: readonly string[]
@@ -190,19 +189,13 @@ async function scanInScopeSessions(args: {
   if (args.scopePaths.length === 0) {
     return []
   }
-  const candidates: SessionFileCandidate[] = []
-  for (const layout of CWD_BUCKET_LAYOUTS) {
-    const files = await discoverInScopeCwdBucketFiles(layout, {
-      rootDirs: args.discoveries
-        .filter((discovery) => discovery.agent === layout.agent)
-        .map((discovery) => discovery.rootDir),
-      scopePaths: args.scopePaths,
-      limit: args.limit,
-      excludedFilePaths: args.alreadyParsedFilePaths,
-      issues: args.issues
-    })
-    candidates.push(...files.map((file) => ({ agent: layout.agent, file, codexHome: null })))
-  }
+  const candidates = await discoverInScopeSessionCandidates({
+    discoveries: args.discoveries,
+    scopePaths: args.scopePaths,
+    limit: args.limit,
+    alreadyParsedFilePaths: args.alreadyParsedFilePaths,
+    issues: args.issues
+  })
   if (candidates.length === 0) {
     return []
   }

@@ -12,6 +12,11 @@ import {
 import { cursorChatMetaPath } from './session-scanner-cursor-chat-meta'
 import { devinSessionsDbDependencyPath } from './session-scanner-devin-db'
 import { resolveKimiSessionsDir } from './session-scanner-kimi-paths'
+import {
+  isKiroSessionDirectory,
+  isKiroSessionMessagesPath,
+  kiroSessionMetadataPath
+} from './session-scanner-kiro-paths'
 import { resolveMuseSessionsDir } from './session-scanner-muse-paths'
 import { OMP_SESSION_ARTIFACT_DIR_PATTERN } from './session-scanner-omp-subagent-transcripts'
 import {
@@ -66,6 +71,8 @@ const DEVIN_TRANSCRIPTS_DIR = join(
 )
 const DROID_SESSIONS_DIR = join(homedir(), '.factory', 'sessions')
 const DROID_PROJECTS_DIR = join(homedir(), '.factory', 'projects')
+// Why: V3 ignores KIRO_HOME (Stage 0), so the store is always under ~/.kiro.
+const KIRO_SESSIONS_DIR = join(homedir(), '.kiro', 'sessions')
 const CLINE_SESSIONS_DIR =
   process.env.CLINE_SESSION_DATA_DIR?.trim() || join(homedir(), '.cline', 'data', 'sessions')
 
@@ -296,6 +303,18 @@ export const AI_VAULT_AGENT_SOURCES: AiVaultAgentSourceTable = {
     // only those (not the sibling agents/*/wire.jsonl transcripts).
     filePredicate: (filePath) =>
       basename(filePath) === 'state.json' && basename(dirname(filePath)).startsWith('session_')
+  },
+  kiro: {
+    rootDirs: (options, wslHomeDirs) =>
+      sessionRootDirs(options.kiroSessionsDir ?? KIRO_SESSIONS_DIR, wslHomeDirs, [
+        '.kiro',
+        'sessions'
+      ]),
+    extensions: ['.jsonl'],
+    // Why: the transcript is the append-only candidate; session.json's stat re-merges a rename.
+    filePredicate: isKiroSessionMessagesPath,
+    contentDependencyPath: kiroSessionMetadataPath,
+    directoryPredicate: isKiroSessionDirectory
   },
   muse: {
     rootDirs: (options, wslHomeDirs) =>
